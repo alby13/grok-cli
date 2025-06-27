@@ -65,8 +65,8 @@ describe('contentGenerator', () => {
     expect(generator).toHaveProperty('countTokens');
     expect(generator).toHaveProperty('embedContent');
     // If we could import GrokApiClient here, we'd do:
-    // import { GrokApiClient } from './grokClient.js';
-    // expect(generator).toBeInstanceOf(GrokApiClient);
+    const { GrokApiClient } = await import('./grokClient.js');
+    expect(generator).toBeInstanceOf(GrokApiClient);
   });
 
   it('should throw an error for USE_GROK if apiKey is missing', async () => {

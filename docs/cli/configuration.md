@@ -241,8 +241,11 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
   - Set this in your shell profile (e.g., `~/.bashrc`, `~/.zshrc`) or an `.env` file.
 - **`GEMINI_MODEL`**:
   - Specifies the default Gemini model to use (if using the Gemini API).
-  - Overrides the hardcoded default
-  - Example: `export GEMINI_MODEL="gemini-2.5-flash"`
+  - Overrides the hardcoded default.
+  - Example: `export GEMINI_MODEL="gemini-1.5-pro-latest"`
+- **`GROK_MODEL`**:
+  - Specifies the default Grok model to use (if using the Grok API).
+  - Example: `export GROK_MODEL="grok-3-mini"`
 - **`GOOGLE_API_KEY`**:
   - Your Google Cloud API key.
   - Required for using Vertex AI in express mode.
@@ -287,8 +290,9 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
 Arguments passed directly when running the CLI can override other configurations for that specific session.
 
 - **`--model <model_name>`** (**`-m <model_name>`**):
-  - Specifies the Gemini model to use for this session.
-  - Example: `npm start -- --model gemini-1.5-pro-latest`
+  - Specifies the model to use for this session. Works with both Gemini and Grok providers.
+  - Example (Gemini): `gemini --model gemini-1.5-pro-latest`
+  - Example (Grok): `gemini --api-provider=grok --model grok-3-mini`
 - **`--api-provider <provider>`**:
   - Specifies the API provider to use.
   - Options: `gemini`, `grok`

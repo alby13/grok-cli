@@ -67,8 +67,8 @@ async function parseArguments(): Promise<CliArgs> {
     .option('model', {
       alias: 'm',
       type: 'string',
-      description: `Model`,
-      default: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
+      description: `Model (e.g., ${DEFAULT_GEMINI_MODEL} for Gemini, grok-3-latest for Grok)`,
+      default: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL, // Default might need adjustment if Grok is default provider
     })
     .option('prompt', {
       alias: 'p',

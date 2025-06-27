@@ -16,7 +16,6 @@
     "typecheck": "tsc --noEmit",
     "prerelease:version": "node ../../scripts/bind_package_version.js",
     "prerelease:deps": "node ../../scripts/bind_package_dependencies.js",
-    "prepack": "npm run build",
     "prepublishOnly": "node ../../scripts/prepublish.js"
   },
   "files": [
@@ -45,7 +44,8 @@
     "simple-git": "^3.28.0",
     "strip-ansi": "^7.1.0",
     "undici": "^7.10.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "openai": "^4.0.0"
   },
   "devDependencies": {
     "@types/diff": "^7.0.2",
