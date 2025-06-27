@@ -233,10 +233,14 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
 
 - **`GEMINI_API_KEY`** (Required):
   - Your API key for the Gemini API.
-  - **Crucial for operation.** The CLI will not function without it.
+  - **Crucial for operation.** The CLI will not function without it if you are using the Gemini API.
+  - Set this in your shell profile (e.g., `~/.bashrc`, `~/.zshrc`) or an `.env` file.
+- **`GROK_API_KEY`**:
+  - Your API key for the Grok API.
+  - **Crucial for operation.** The CLI will not function without it if you are using the Grok API.
   - Set this in your shell profile (e.g., `~/.bashrc`, `~/.zshrc`) or an `.env` file.
 - **`GEMINI_MODEL`**:
-  - Specifies the default Gemini model to use.
+  - Specifies the default Gemini model to use (if using the Gemini API).
   - Overrides the hardcoded default
   - Example: `export GEMINI_MODEL="gemini-2.5-flash"`
 - **`GOOGLE_API_KEY`**:
@@ -285,6 +289,11 @@ Arguments passed directly when running the CLI can override other configurations
 - **`--model <model_name>`** (**`-m <model_name>`**):
   - Specifies the Gemini model to use for this session.
   - Example: `npm start -- --model gemini-1.5-pro-latest`
+- **`--api-provider <provider>`**:
+  - Specifies the API provider to use.
+  - Options: `gemini`, `grok`
+  - Default: `gemini`
+  - Example: `gemini --api-provider=grok`
 - **`--prompt <your_prompt>`** (**`-p <your_prompt>`**):
   - Used to pass a prompt directly to the command. This invokes Gemini CLI in a non-interactive mode.
 - **`--sandbox`** (**`-s`**):

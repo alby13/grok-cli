@@ -11,6 +11,10 @@ import { RadioButtonSelect } from './shared/RadioButtonSelect.js';
 import { LoadedSettings, SettingScope } from '../../config/settings.js';
 import { AuthType } from '@google/gemini-cli-core';
 import { validateAuthMethod } from '../../config/auth.js';
+import { GeminiPrivacyNotice } from '../privacy/GeminiPrivacyNotice.js';
+import { VertexPrivacyNotice } from '../privacy/VertexPrivacyNotice.js';
+import { GrokPrivacyNotice } from '../privacy/GrokPrivacyNotice.js'; // Added import
+import { LoginWithGooglePrivacyNotice } from '../privacy/LoginWithGooglePrivacyNotice.js';
 
 interface AuthDialogProps {
   onSelect: (authMethod: string | undefined, scope: SettingScope) => void;
@@ -28,6 +32,10 @@ export function AuthDialog({
   const [errorMessage, setErrorMessage] = useState<string | null>(
     initialErrorMessage || null,
   );
+  const [highlightedAuthType, setHighlightedAuthType] = useState<
+    string | undefined
+  >(undefined);
+
   const items = [
     {
       label: 'Login with Google',
@@ -35,6 +43,7 @@ export function AuthDialog({
     },
     { label: 'Gemini API Key', value: AuthType.USE_GEMINI },
     { label: 'Vertex AI', value: AuthType.USE_VERTEX_AI },
+    { label: 'Grok API Key', value: AuthType.USE_GROK },
   ];
 
   let initialAuthIndex = items.findIndex(
@@ -53,6 +62,11 @@ export function AuthDialog({
       setErrorMessage(null);
       onSelect(authMethod, SettingScope.User);
     }
+  };
+
+  const handleHighlight = (authMethod?: string) => {
+    setHighlightedAuthType(authMethod);
+    onHighlight(authMethod);
   };
 
   useInput((_input, key) => {
@@ -81,7 +95,7 @@ export function AuthDialog({
         items={items}
         initialIndex={initialAuthIndex}
         onSelect={handleAuthSelect}
-        onHighlight={onHighlight}
+        onHighlight={handleHighlight}
         isFocused={true}
       />
       {errorMessage && (
@@ -92,16 +106,31 @@ export function AuthDialog({
       <Box marginTop={1}>
         <Text color={Colors.Gray}>(Use Enter to select)</Text>
       </Box>
-      <Box marginTop={1}>
-        <Text>Terms of Services and Privacy Notice for Gemini CLI</Text>
-      </Box>
-      <Box marginTop={1}>
-        <Text color={Colors.AccentBlue}>
-          {
-            'https://github.com/google-gemini/gemini-cli/blob/main/docs/tos-privacy.md'
-          }
-        </Text>
-      </Box>
+      {highlightedAuthType === AuthType.LOGIN_WITH_GOOGLE_PERSONAL && (
+        <LoginWithGooglePrivacyNotice />
+      )}
+      {highlightedAuthType === AuthType.USE_GEMINI && <GeminiPrivacyNotice />}
+      {highlightedAuthType === AuthType.USE_VERTEX_AI && (
+        <VertexPrivacyNotice />
+      )}
+      {highlightedAuthType === AuthType.USE_GROK && <GrokPrivacyNotice />}
+      {!highlightedAuthType &&
+        settings.merged.selectedAuthType ===
+          AuthType.LOGIN_WITH_GOOGLE_PERSONAL && (
+          <LoginWithGooglePrivacyNotice />
+        )}
+      {!highlightedAuthType &&
+        settings.merged.selectedAuthType === AuthType.USE_GEMINI && (
+          <GeminiPrivacyNotice />
+        )}
+      {!highlightedAuthType &&
+        settings.merged.selectedAuthType === AuthType.USE_VERTEX_AI && (
+          <VertexPrivacyNotice />
+        )}
+      {!highlightedAuthType &&
+        settings.merged.selectedAuthType === AuthType.USE_GROK && (
+          <GrokPrivacyNotice />
+        )}
     </Box>
   );
 }

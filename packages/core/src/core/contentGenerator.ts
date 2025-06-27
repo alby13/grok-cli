@@ -13,6 +13,7 @@ import {
   EmbedContentParameters,
   GoogleGenAI,
 } from '@google/genai';
+import { GrokApiClient } from './grokClient.js'; // Added import
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
 import { DEFAULT_GEMINI_MODEL } from '../config/models.js';
 import { getEffectiveModel } from './modelCheck.js';
@@ -38,6 +39,7 @@ export enum AuthType {
   LOGIN_WITH_GOOGLE_PERSONAL = 'oauth-personal',
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
+  USE_GROK = 'grok-api-key',
 }
 
 export type ContentGeneratorConfig = {
@@ -53,6 +55,7 @@ export async function createContentGeneratorConfig(
   config?: { getModel?: () => string },
 ): Promise<ContentGeneratorConfig> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
+  const grokApiKey = process.env.GROK_API_KEY;
   const googleApiKey = process.env.GOOGLE_API_KEY;
   const googleCloudProject = process.env.GOOGLE_CLOUD_PROJECT;
   const googleCloudLocation = process.env.GOOGLE_CLOUD_LOCATION;
@@ -77,6 +80,16 @@ export async function createContentGeneratorConfig(
       contentGeneratorConfig.model,
     );
 
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_GROK && grokApiKey) {
+    contentGeneratorConfig.apiKey = grokApiKey;
+    // TODO: Add model validation for Grok if needed
+    // contentGeneratorConfig.model = await getEffectiveModel(
+    //   contentGeneratorConfig.apiKey,
+    //   contentGeneratorConfig.model,
+    // );
     return contentGeneratorConfig;
   }
 
@@ -123,6 +136,15 @@ export async function createContentGenerator(
     });
 
     return googleGenAI.models;
+  }
+
+  if (config.authType === AuthType.USE_GROK) {
+    if (!config.apiKey) {
+      throw new Error(
+        'Grok API key is required for AuthType.USE_GROK but was not provided.',
+      );
+    }
+    return new GrokApiClient(config.apiKey);
   }
 
   throw new Error(

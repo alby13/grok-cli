@@ -53,10 +53,17 @@ interface CliArgs {
   telemetryTarget: string | undefined;
   telemetryOtlpEndpoint: string | undefined;
   telemetryLogPrompts: boolean | undefined;
+  apiProvider: string | undefined;
 }
 
 async function parseArguments(): Promise<CliArgs> {
   const argv = await yargs(hideBin(process.argv))
+    .option('api-provider', {
+      type: 'string',
+      description: 'API provider (gemini or grok)',
+      choices: ['gemini', 'grok'],
+      default: 'gemini',
+    })
     .option('model', {
       alias: 'm',
       type: 'string',
@@ -245,6 +252,11 @@ export async function loadCliConfig(
     bugCommand: settings.bugCommand,
     model: argv.model!,
     extensionContextFilePaths,
+    // TODO: Update @google/gemini-cli-core Config class to accept apiProvider and apiKey
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    apiProvider: argv.apiProvider as any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    apiKey: (argv.apiProvider === 'grok' ? process.env.GROK_API_KEY : process.env.GEMINI_API_KEY) as any,
   });
 }
 
@@ -298,5 +310,13 @@ export function loadEnvironment(): void {
   const envFilePath = findEnvFile(process.cwd());
   if (envFilePath) {
     dotenv.config({ path: envFilePath });
+  }
+
+  // Attempt to load GROK_API_KEY from .env if not already set
+  if (!process.env.GROK_API_KEY && envFilePath) {
+    const envConfig = dotenv.parse(fs.readFileSync(envFilePath));
+    if (envConfig.GROK_API_KEY) {
+      process.env.GROK_API_KEY = envConfig.GROK_API_KEY;
+    }
   }
 }
