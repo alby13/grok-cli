@@ -1,3 +1,5 @@
+NOTE: THIS IS A WORK IN PROGRESS, IT HAS NOT BEEN TESTED. THANK YOU.
+
 # Grok CLI
 
 This repository contains the Grok CLI, a command-line AI workflow tool that connects to your
