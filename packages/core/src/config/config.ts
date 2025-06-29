@@ -167,8 +167,15 @@ export class Config {
   private modelSwitchedDuringSession: boolean = false;
   flashFallbackHandler?: FlashFallbackHandler;
 
+  // Added for API provider selection
+  private readonly _apiProvider?: string;
+  private readonly _apiKey?: string;
+  private _initialAuthType?: AuthType; // To store AuthType determined at construction
+
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
+    this._apiProvider = params.apiProvider; // Store apiProvider
+    this._apiKey = params.apiKey; // Store apiKey
     this.embeddingModel =
       params.embeddingModel ?? DEFAULT_GEMINI_EMBEDDING_MODEL;
     this.sandbox = params.sandbox;
@@ -223,34 +230,65 @@ export class Config {
     } else {
       console.log('Data collection is disabled.');
     }
+
+    // Determine initial AuthType based on apiProvider
+    // This needs to be done before _initializeAuth is called (next step in plan)
+    // For now, just determining it. The actual call to _initializeAuth
+    // with this type will be added in the next plan step.
+    let initialAuthType: AuthType = AuthType.USE_GEMINI; // Default
+    if (this._apiProvider === 'grok') {
+      initialAuthType = AuthType.USE_GROK;
+    } else if (this._apiProvider === 'gemini') {
+      // Could be more specific here if Gemini had other key-based auth types
+      initialAuthType = AuthType.USE_GEMINI;
+    }
+    // TODO: In the next step, call an async initialization method here
+    // with initialAuthType and this._apiKey.
+    // For now, this.contentGeneratorConfig and this.geminiClient are not yet initialized
+    // if we rely solely on CLI flags without interactive auth.
+    // Storing initialAuthType and _apiKey to be used by ensureInitialized()
+    this._initialAuthType = initialAuthType;
+  }
+
+  // Ensure the client and related components are initialized.
+  // This should be called before any operations requiring an active client.
+  async ensureInitialized(): Promise<void> {
+    if (!this.geminiClient) {
+      // Use the auth type determined from CLI args/defaults and the stored API key
+      await this._initializeAuth(this._initialAuthType!, this._apiKey);
+    }
   }
 
   async refreshAuth(authMethod: AuthType) {
-    // Always use the original default model when switching auth methods
-    // This ensures users don't stay on Flash after switching between auth types
-    // and allows API key users to get proper fallback behavior from getEffectiveModel
-    const modelToUse = this.model; // Use the original default model
-
-    // Temporarily clear contentGeneratorConfig to prevent getModel() from returning
-    // the previous session's model (which might be Flash)
-    this.contentGeneratorConfig = undefined!;
-
-    const contentConfig = await createContentGeneratorConfig(
-      modelToUse,
-      authMethod,
-      this,
-    );
-
-    const gc = new GeminiClient(this);
-    this.geminiClient = gc;
-    this.toolRegistry = await createToolRegistry(this);
-    await gc.initialize(contentConfig);
-    this.contentGeneratorConfig = contentConfig;
+    // When refreshing auth (e.g., user selects a new method in UI),
+    // we typically don't have an explicit API key for that new method yet,
+    // so createContentGeneratorConfig will try to find it from env vars.
+    // The model used will be the original default model.
+    await this._initializeAuth(authMethod, undefined /* apiKey will be sourced from env by createContentGeneratorConfig */);
 
     // Reset the session flag since we're explicitly changing auth and using default model
     this.modelSwitchedDuringSession = false;
 
     // Note: In the future, we may want to reset any cached state when switching auth methods
+  }
+
+  private async _initializeAuth(authType: AuthType, apiKey?: string) {
+    // Temporarily clear contentGeneratorConfig to ensure fresh setup
+    this.contentGeneratorConfig = undefined!;
+
+    const contentConfig = await createContentGeneratorConfig(
+      this.model, // Use the original default model from constructor
+      authType,
+      this, // Pass the Config instance for getModel()
+      apiKey, // Pass the explicit API key
+    );
+
+    const client = new GeminiClient(this); // Will be XaiClient or similar after full rebrand
+    this.toolRegistry = await createToolRegistry(this); // Initialize tool registry first
+    await client.initialize(contentConfig); // Then initialize client with tools
+
+    this.geminiClient = client;
+    this.contentGeneratorConfig = contentConfig;
   }
 
   getSessionId(): string {

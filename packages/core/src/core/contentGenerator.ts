@@ -53,10 +53,11 @@ export async function createContentGeneratorConfig(
   model: string | undefined,
   authType: AuthType | undefined,
   config?: { getModel?: () => string },
+  explicitApiKey?: string, // Added explicitApiKey parameter
 ): Promise<ContentGeneratorConfig> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-  const grokApiKey = process.env.GROK_API_KEY;
-  const googleApiKey = process.env.GOOGLE_API_KEY;
+  const geminiApiKeyFromEnv = process.env.GEMINI_API_KEY;
+  const grokApiKeyFromEnv = process.env.GROK_API_KEY;
+  const googleApiKeyFromEnv = process.env.GOOGLE_API_KEY;
   const googleCloudProject = process.env.GOOGLE_CLOUD_PROJECT;
   const googleCloudLocation = process.env.GOOGLE_CLOUD_LOCATION;
 
@@ -73,42 +74,66 @@ export async function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
-  if (authType === AuthType.USE_GEMINI && geminiApiKey) {
-    contentGeneratorConfig.apiKey = geminiApiKey;
-    contentGeneratorConfig.model = await getEffectiveModel(
-      contentGeneratorConfig.apiKey,
-      contentGeneratorConfig.model,
-    );
-
-    return contentGeneratorConfig;
+  if (authType === AuthType.USE_GEMINI) {
+    const apiKeyToUse = explicitApiKey ?? geminiApiKeyFromEnv;
+    if (apiKeyToUse) {
+      contentGeneratorConfig.apiKey = apiKeyToUse;
+      contentGeneratorConfig.model = await getEffectiveModel(
+        contentGeneratorConfig.apiKey,
+        contentGeneratorConfig.model,
+      );
+      return contentGeneratorConfig;
+    }
   }
 
-  if (authType === AuthType.USE_GROK && grokApiKey) {
-    contentGeneratorConfig.apiKey = grokApiKey;
-    // TODO: Add model validation for Grok if needed
-    // contentGeneratorConfig.model = await getEffectiveModel(
-    //   contentGeneratorConfig.apiKey,
+  if (authType === AuthType.USE_GROK) {
+    const apiKeyToUse = explicitApiKey ?? grokApiKeyFromEnv;
+    if (apiKeyToUse) {
+      contentGeneratorConfig.apiKey = apiKeyToUse;
+      // TODO: Add model validation for Grok if needed
+      // contentGeneratorConfig.model = await getEffectiveModel(
+      //   contentGeneratorConfig.apiKey,
     //   contentGeneratorConfig.model,
     // );
     return contentGeneratorConfig;
   }
 
-  if (
-    authType === AuthType.USE_VERTEX_AI &&
-    !!googleApiKey &&
-    googleCloudProject &&
-    googleCloudLocation
-  ) {
-    contentGeneratorConfig.apiKey = googleApiKey;
-    contentGeneratorConfig.vertexai = true;
-    contentGeneratorConfig.model = await getEffectiveModel(
-      contentGeneratorConfig.apiKey,
-      contentGeneratorConfig.model,
-    );
-
-    return contentGeneratorConfig;
+  if (authType === AuthType.USE_VERTEX_AI) {
+    // For Vertex AI, GOOGLE_API_KEY is often used, or ADC.
+    // Explicit API key might not be as common here if ADC is preferred.
+    // Prioritizing explicitApiKey if provided, otherwise environment variable.
+    const apiKeyToUse = explicitApiKey ?? googleApiKeyFromEnv;
+    if (
+      apiKeyToUse && // If using explicit key for Vertex, project/location still needed from env
+      googleCloudProject &&
+      googleCloudLocation
+    ) {
+      contentGeneratorConfig.apiKey = apiKeyToUse;
+      contentGeneratorConfig.vertexai = true;
+      contentGeneratorConfig.model = await getEffectiveModel(
+        contentGeneratorConfig.apiKey,
+        contentGeneratorConfig.model,
+      );
+      return contentGeneratorConfig;
+    } else if (
+      // Fallback to ADC if no explicit/env key but project/location are set
+      !apiKeyToUse &&
+      googleCloudProject &&
+      googleCloudLocation
+    ) {
+      // When apiKey is not set for Vertex, GoogleGenAI uses ADC
+      contentGeneratorConfig.vertexai = true;
+      contentGeneratorConfig.model = await getEffectiveModel(
+        undefined, // No API key, rely on ADC
+        contentGeneratorConfig.model,
+        true, // isVertex
+      );
+      return contentGeneratorConfig;
+    }
   }
 
+  // If no specific auth type with a key was matched, return the config.
+  // createContentGenerator will later throw an error if the authType requires a key and none was found.
   return contentGeneratorConfig;
 }
 

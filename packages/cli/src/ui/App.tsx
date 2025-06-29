@@ -92,6 +92,17 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const { stdout } = useStdout();
 
+  // Ensure config is initialized early
+  useEffect(() => {
+    config.ensureInitialized().catch(err => {
+      // Handle or log initialization error, e.g., by adding to consoleMessages
+      // This error could be critical, preventing the app from working.
+      addItem({ type: MessageType.ERROR, text: `Critical configuration error: ${getErrorMessage(err)}` }, Date.now());
+      // initError from useGeminiStream will be set if client interaction fails.
+    });
+  }, [config, addItem]);
+
+
   useEffect(() => {
     checkForUpdates().then(setUpdateMessage);
   }, []);
