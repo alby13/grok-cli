@@ -25,7 +25,7 @@ import { ToolRegistry } from './tool-registry.js';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { GeminiClient } from '../core/client.js';
+import { XaiClient } from '../core/xaiClient.js'; // Renamed import
 import {
   ensureCorrectEdit,
   ensureCorrectFileContent,
@@ -35,10 +35,10 @@ import {
 const rootDir = path.resolve(os.tmpdir(), 'gemini-cli-test-root');
 
 // --- MOCKS ---
-vi.mock('../core/client.js');
+vi.mock('../core/xaiClient.js'); // Renamed path
 vi.mock('../utils/editCorrector.js');
 
-let mockGeminiClientInstance: Mocked<GeminiClient>;
+let mockXaiClientInstance: Mocked<XaiClient>; // Renamed type
 const mockEnsureCorrectEdit = vi.fn<typeof ensureCorrectEdit>();
 const mockEnsureCorrectFileContent = vi.fn<typeof ensureCorrectFileContent>();
 
@@ -92,16 +92,17 @@ describe('WriteFileTool', () => {
       fs.mkdirSync(rootDir, { recursive: true });
     }
 
-    // Setup GeminiClient mock
-    mockGeminiClientInstance = new (vi.mocked(GeminiClient))(
+    // Setup XaiClient mock
+    mockXaiClientInstance = new (vi.mocked(XaiClient))( // Already XaiClient here
       mockConfig,
-    ) as Mocked<GeminiClient>;
-    vi.mocked(GeminiClient).mockImplementation(() => mockGeminiClientInstance);
+    ) as Mocked<XaiClient>;
+    vi.mocked(XaiClient).mockImplementation(() => mockXaiClientInstance);
 
-    // Now that mockGeminiClientInstance is initialized, set the mock implementation for getGeminiClient
-    mockConfigInternal.getGeminiClient.mockReturnValue(
-      mockGeminiClientInstance,
-    );
+    // Now that mockXaiClientInstance is initialized, set the mock implementation for getXaiClient
+    // This method on config will also need renaming later
+    mockConfigInternal.getXaiClient = vi.fn(() => mockXaiClientInstance); // Renamed method and assigned
+    (mockConfig as any).getGeminiClient = vi.fn(() => mockXaiClientInstance); // Keep old for now if referenced directly
+                                                                           // but ideally remove after full refactor
 
     tool = new WriteFileTool(mockConfig);
 
@@ -116,7 +117,7 @@ describe('WriteFileTool', () => {
       async (
         _currentContent: string,
         params: EditToolParams,
-        _client: GeminiClient,
+        _client: XaiClient, // Renamed type
         signal?: AbortSignal, // Make AbortSignal optional to match usage
       ): Promise<CorrectedEditResult> => {
         if (signal?.aborted) {
@@ -131,7 +132,7 @@ describe('WriteFileTool', () => {
     mockEnsureCorrectFileContent.mockImplementation(
       async (
         content: string,
-        _client: GeminiClient,
+        _client: XaiClient, // Renamed type
         signal?: AbortSignal,
       ): Promise<string> => {
         // Make AbortSignal optional

@@ -14,8 +14,8 @@ vi.mock('../utils/editCorrector.js', () => ({
   ensureCorrectEdit: mockEnsureCorrectEdit,
 }));
 
-vi.mock('../core/client.js', () => ({
-  GeminiClient: vi.fn().mockImplementation(() => ({
+vi.mock('../core/xaiClient.js', () => ({
+  XaiClient: vi.fn().mockImplementation(() => ({
     generateJson: mockGenerateJson,
   })),
 }));

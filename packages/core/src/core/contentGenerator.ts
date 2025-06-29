@@ -36,10 +36,11 @@ export interface ContentGenerator {
 }
 
 export enum AuthType {
-  LOGIN_WITH_GOOGLE_PERSONAL = 'oauth-personal',
-  USE_GEMINI = 'gemini-api-key',
-  USE_VERTEX_AI = 'vertex-ai',
-  USE_GROK = 'grok-api-key',
+  USE_XAI_API_KEY = 'xai-api-key', // Renamed and will be the only one
+  // LOGIN_WITH_GOOGLE_PERSONAL = 'oauth-personal', // To be removed
+  // USE_GEMINI = 'gemini-api-key', // To be removed
+  // USE_VERTEX_AI = 'vertex-ai', // To be removed
+  // USE_GROK = 'grok-api-key', // To be removed (superceded by USE_XAI_API_KEY)
 }
 
 export type ContentGeneratorConfig = {

@@ -18,7 +18,7 @@ import {
 import { SchemaValidator } from '../utils/schemaValidator.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { isNodeError } from '../utils/errors.js';
-import { GeminiClient } from '../core/client.js';
+import { XaiClient } from '../core/xaiClient.js'; // Renamed import
 import { Config, ApprovalMode } from '../config/config.js';
 import { ensureCorrectEdit } from '../utils/editCorrector.js';
 import { DEFAULT_DIFF_OPTIONS } from './diffOptions.js';
@@ -69,7 +69,7 @@ export class EditTool
   static readonly Name = 'replace';
   private readonly config: Config;
   private readonly rootDirectory: string;
-  private readonly client: GeminiClient;
+  private readonly client: XaiClient; // Renamed
 
   /**
    * Creates a new instance of the EditLogic
@@ -118,7 +118,7 @@ Expectation for required parameters:
     );
     this.config = config;
     this.rootDirectory = path.resolve(this.config.getTargetDir());
-    this.client = config.getGeminiClient();
+    this.client = config.getXaiClient(); // Renamed method call (will update config later)
   }
 
   /**

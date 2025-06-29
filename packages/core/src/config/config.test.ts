@@ -51,9 +51,9 @@ vi.mock('../core/contentGenerator.js', async (importOriginal) => {
   };
 });
 
-vi.mock('../core/client.js', () => ({
-  GeminiClient: vi.fn().mockImplementation(() => ({
-    // Mock any methods on GeminiClient that might be used.
+vi.mock('../core/xaiClient.js', () => ({
+  XaiClient: vi.fn().mockImplementation(() => ({
+    // Mock any methods on XaiClient that might be used.
   })),
 }));
 

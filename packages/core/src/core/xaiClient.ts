@@ -27,7 +27,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
-import { GeminiChat } from './geminiChat.js';
+import { GrokChatSession } from './grokChatSession.js'; // Renamed import
 import { retryWithBackoff } from '../utils/retry.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { tokenLimit } from './tokenLimits.js';
@@ -37,18 +37,20 @@ import {
   createContentGenerator,
 } from './contentGenerator.js';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
-import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+// import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js'; // To be replaced by Grok model
 import { AuthType } from './contentGenerator.js';
 
+// This function might need to be adapted or removed if Grok doesn't have equivalent "thinking" features.
 function isThinkingSupported(model: string) {
-  if (model.startsWith('gemini-2.5')) return true;
+  // if (model.startsWith('gemini-2.5')) return true; // Example, will change
+  if (model.startsWith('grok-')) return false; // Assuming Grok doesn't have this Gemini-like feature
   return false;
 }
 
-export class GeminiClient {
-  private chat?: GeminiChat;
-  private contentGenerator?: ContentGenerator;
-  private model: string;
+export class XaiClient {
+  private chat?: GrokChatSession; // Already updated type here
+  private contentGenerator?: ContentGenerator; // This will be GrokApiClient
+  private model: string; // This will be a Grok model
   private embeddingModel: string;
   private generateContentConfig: GenerateContentConfig = {
     temperature: 0,
@@ -83,7 +85,7 @@ export class GeminiClient {
     this.getChat().addHistory(content);
   }
 
-  getChat(): GeminiChat {
+  getChat(): GrokChatSession { // Renamed return type
     if (!this.chat) {
       throw new Error('Chat not initialized');
     }
@@ -167,7 +169,7 @@ export class GeminiClient {
     return initialParts;
   }
 
-  private async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
+  private async startChat(extraHistory?: Content[]): Promise<GrokChatSession> { // Renamed return type
     const envParts = await this.getEnvironment();
     const toolRegistry = await this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
@@ -194,7 +196,7 @@ export class GeminiClient {
             },
           }
         : this.generateContentConfig;
-      return new GeminiChat(
+      return new GrokChatSession( // Renamed class instantiation
         this.config,
         this.getContentGenerator(),
         {
@@ -207,7 +209,7 @@ export class GeminiClient {
     } catch (error) {
       await reportError(
         error,
-        'Error initializing Gemini chat session.',
+        'Error initializing Grok chat session.', // Updated error message
         history,
         'startChat',
       );

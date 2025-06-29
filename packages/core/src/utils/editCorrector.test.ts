@@ -15,15 +15,15 @@ let mockGenerateJson: any;
 let mockStartChat: any;
 let mockSendMessageStream: any;
 
-vi.mock('../core/client.js', () => ({
-  GeminiClient: vi.fn().mockImplementation(function (
+vi.mock('../core/xaiClient.js', () => ({ // Renamed path
+  XaiClient: vi.fn().mockImplementation(function ( // Class name will be changed later
     this: any,
     _config: Config,
   ) {
-    this.generateJson = (...params: any[]) => mockGenerateJson(...params); // Corrected: use mockGenerateJson
-    this.startChat = (...params: any[]) => mockStartChat(...params); // Corrected: use mockStartChat
+    this.generateJson = (...params: any[]) => mockGenerateJson(...params);
+    this.startChat = (...params: any[]) => mockStartChat(...params);
     this.sendMessageStream = (...params: any[]) =>
-      mockSendMessageStream(...params); // Corrected: use mockSendMessageStream
+      mockSendMessageStream(...params);
     return this;
   }),
 }));
@@ -36,7 +36,7 @@ import {
   unescapeStringForGeminiBug,
   resetEditCorrectorCaches_TEST_ONLY,
 } from './editCorrector.js';
-import { GeminiClient } from '../core/client.js';
+import { XaiClient } from '../core/xaiClient.js'; // Renamed import
 import type { Config } from '../config/config.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 
@@ -145,7 +145,7 @@ describe('editCorrector', () => {
   });
 
   describe('ensureCorrectEdit', () => {
-    let mockGeminiClientInstance: Mocked<GeminiClient>;
+    let mockXaiClientInstance: Mocked<XaiClient>; // Renamed type
     let mockToolRegistry: Mocked<ToolRegistry>;
     let mockConfigInstance: Config;
     const abortSignal = new AbortController().signal;
@@ -219,9 +219,9 @@ describe('editCorrector', () => {
       mockStartChat = vi.fn();
       mockSendMessageStream = vi.fn();
 
-      mockGeminiClientInstance = new GeminiClient(
+      mockXaiClientInstance = new XaiClient( // Renamed class
         mockConfigInstance,
-      ) as Mocked<GeminiClient>;
+      ) as Mocked<XaiClient>; // Renamed type
       resetEditCorrectorCaches_TEST_ONLY();
     });
 
@@ -239,7 +239,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -257,7 +257,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(0);
@@ -278,7 +278,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -296,7 +296,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(0);
@@ -318,7 +318,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -336,7 +336,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(0);
@@ -354,7 +354,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(0);
@@ -377,7 +377,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -399,7 +399,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(2);
@@ -419,7 +419,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -441,7 +441,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -462,7 +462,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(1);
@@ -480,7 +480,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(0);
@@ -503,7 +503,7 @@ describe('editCorrector', () => {
         const result = await ensureCorrectEdit(
           currentContent,
           originalParams,
-          mockGeminiClientInstance,
+          mockXaiClientInstance, // Renamed variable
           abortSignal,
         );
         expect(mockGenerateJson).toHaveBeenCalledTimes(2);
@@ -515,7 +515,7 @@ describe('editCorrector', () => {
   });
 
   describe('ensureCorrectFileContent', () => {
-    let mockGeminiClientInstance: Mocked<GeminiClient>;
+    let mockXaiClientInstance: Mocked<XaiClient>; // Renamed type
     let mockToolRegistry: Mocked<ToolRegistry>;
     let mockConfigInstance: Config;
     const abortSignal = new AbortController().signal;
@@ -588,9 +588,9 @@ describe('editCorrector', () => {
       mockStartChat = vi.fn();
       mockSendMessageStream = vi.fn();
 
-      mockGeminiClientInstance = new GeminiClient(
+      mockXaiClientInstance = new XaiClient( // Renamed class
         mockConfigInstance,
-      ) as Mocked<GeminiClient>;
+      ) as Mocked<XaiClient>; // Renamed type
       resetEditCorrectorCaches_TEST_ONLY();
     });
 
@@ -598,7 +598,7 @@ describe('editCorrector', () => {
       const content = 'This is normal content without escaping issues';
       const result = await ensureCorrectFileContent(
         content,
-        mockGeminiClientInstance,
+        mockXaiClientInstance, // Renamed variable
         abortSignal,
       );
       expect(result).toBe(content);
@@ -614,7 +614,7 @@ describe('editCorrector', () => {
 
       const result = await ensureCorrectFileContent(
         content,
-        mockGeminiClientInstance,
+        mockXaiClientInstance, // Renamed variable
         abortSignal,
       );
 
@@ -634,7 +634,7 @@ describe('editCorrector', () => {
 
       const result = await ensureCorrectFileContent(
         content,
-        mockGeminiClientInstance,
+        mockXaiClientInstance, // Renamed variable
         abortSignal,
       );
 
@@ -649,7 +649,7 @@ describe('editCorrector', () => {
 
       const result = await ensureCorrectFileContent(
         content,
-        mockGeminiClientInstance,
+        mockXaiClientInstance, // Renamed variable
         abortSignal,
       );
 
@@ -669,7 +669,7 @@ describe('editCorrector', () => {
 
       const result = await ensureCorrectFileContent(
         content,
-        mockGeminiClientInstance,
+        mockXaiClientInstance, // Renamed variable
         abortSignal,
       );
 

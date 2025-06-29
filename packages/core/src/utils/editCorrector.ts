@@ -10,7 +10,7 @@ import {
   SchemaUnion,
   Type,
 } from '@google/genai';
-import { GeminiClient } from '../core/client.js';
+import { XaiClient } from '../core/xaiClient.js'; // Renamed import
 import { EditToolParams } from '../tools/edit.js';
 import { LruCache } from './LruCache.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
@@ -63,7 +63,7 @@ export interface CorrectedEditResult {
 export async function ensureCorrectEdit(
   currentContent: string,
   originalParams: EditToolParams, // This is the EditToolParams from edit.ts, without \'corrected\'
-  client: GeminiClient,
+  client: XaiClient, // Renamed type
   abortSignal: AbortSignal,
 ): Promise<CorrectedEditResult> {
   const cacheKey = `${currentContent}---${originalParams.old_string}---${originalParams.new_string}`;
@@ -211,7 +211,7 @@ export async function ensureCorrectEdit(
 
 export async function ensureCorrectFileContent(
   content: string,
-  client: GeminiClient,
+  client: XaiClient, // Renamed type
   abortSignal: AbortSignal,
 ): Promise<string> {
   const cachedResult = fileContentCorrectionCache.get(content);
@@ -249,7 +249,7 @@ const OLD_STRING_CORRECTION_SCHEMA: SchemaUnion = {
 };
 
 export async function correctOldStringMismatch(
-  geminiClient: GeminiClient,
+  xaiClient: XaiClient, // Renamed parameter
   fileContent: string,
   problematicSnippet: string,
   abortSignal: AbortSignal,
@@ -278,7 +278,7 @@ Return ONLY the corrected target snippet in the specified JSON format with the k
   const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
 
   try {
-    const result = await geminiClient.generateJson(
+    const result = await xaiClient.generateJson( // Renamed call
       contents,
       OLD_STRING_CORRECTION_SCHEMA,
       abortSignal,
@@ -326,7 +326,7 @@ const NEW_STRING_CORRECTION_SCHEMA: SchemaUnion = {
  * Adjusts the new_string to align with a corrected old_string, maintaining the original intent.
  */
 export async function correctNewString(
-  geminiClient: GeminiClient,
+  xaiClient: XaiClient, // Renamed parameter
   originalOldString: string,
   correctedOldString: string,
   originalNewString: string,
@@ -366,7 +366,7 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
   const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
 
   try {
-    const result = await geminiClient.generateJson(
+    const result = await xaiClient.generateJson( // Renamed call
       contents,
       NEW_STRING_CORRECTION_SCHEMA,
       abortSignal,
@@ -406,7 +406,7 @@ const CORRECT_NEW_STRING_ESCAPING_SCHEMA: SchemaUnion = {
 };
 
 export async function correctNewStringEscaping(
-  geminiClient: GeminiClient,
+  xaiClient: XaiClient, // Renamed parameter
   oldString: string,
   potentiallyProblematicNewString: string,
   abortSignal: AbortSignal,
@@ -435,7 +435,7 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
   const contents: Content[] = [{ role: 'user', parts: [{ text: prompt }] }];
 
   try {
-    const result = await geminiClient.generateJson(
+    const result = await xaiClient.generateJson( // Renamed call
       contents,
       CORRECT_NEW_STRING_ESCAPING_SCHEMA,
       abortSignal,
@@ -479,7 +479,7 @@ const CORRECT_STRING_ESCAPING_SCHEMA: SchemaUnion = {
 
 export async function correctStringEscaping(
   potentiallyProblematicString: string,
-  client: GeminiClient,
+  client: XaiClient, // Renamed parameter type
   abortSignal: AbortSignal,
 ): Promise<string> {
   const prompt = `
