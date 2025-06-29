@@ -29,7 +29,7 @@ const mockSendMessageStream = vi
   .mockReturnValue((async function* () {})());
 const mockStartChat = vi.fn();
 
-const MockedGeminiClientClass = vi.hoisted(() =>
+const MockedXaiClientClass = vi.hoisted(() =>
   vi.fn().mockImplementation(function (this: any, _config: any) {
     // _config
     this.startChat = mockStartChat;
@@ -47,7 +47,7 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
   return {
     ...actualCoreModule,
     GitService: vi.fn(),
-    GeminiClient: MockedGeminiClientClass,
+    XaiClient: MockedXaiClientClass,
     UserPromptEvent: MockedUserPromptEvent,
   };
 });
@@ -259,11 +259,11 @@ describe('useGeminiStream', () => {
 
     mockAddItem = vi.fn();
     mockSetShowHelp = vi.fn();
-    // Define the mock for getGeminiClient
-    const mockGetGeminiClient = vi.fn().mockImplementation(() => {
-      // MockedGeminiClientClass is defined in the module scope by the previous change.
+    // Define the mock for getXaiClient
+    const mockGetXaiClient = vi.fn().mockImplementation(() => {
+      // MockedXaiClientClass is defined in the module scope by the previous change.
       // It will use the mockStartChat and mockSendMessageStream that are managed within beforeEach.
-      const clientInstance = new MockedGeminiClientClass(mockConfig);
+      const clientInstance = new MockedXaiClientClass(mockConfig);
       return clientInstance;
     });
 
@@ -292,7 +292,7 @@ describe('useGeminiStream', () => {
       ),
       getProjectRoot: vi.fn(() => '/test/dir'),
       getCheckpointingEnabled: vi.fn(() => false),
-      getGeminiClient: mockGetGeminiClient,
+      getXaiClient: mockGetXaiClient,
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       addHistory: vi.fn(),
@@ -313,8 +313,8 @@ describe('useGeminiStream', () => {
       mockMarkToolsAsSubmitted,
     ]);
 
-    // Reset mocks for GeminiClient instance methods (startChat and sendMessageStream)
-    // The GeminiClient constructor itself is mocked at the module level.
+    // Reset mocks for XaiClient instance methods (startChat and sendMessageStream)
+    // The XaiClient constructor itself is mocked at the module level.
     mockStartChat.mockClear().mockResolvedValue({
       sendMessageStream: mockSendMessageStream,
     } as unknown as any); // GeminiChat -> any
@@ -334,7 +334,7 @@ describe('useGeminiStream', () => {
 
   const renderTestHook = (
     initialToolCalls: TrackedToolCall[] = [],
-    geminiClient?: any,
+    xaiClient?: any,
   ) => {
     let currentToolCalls = initialToolCalls;
     const setToolCalls = (newToolCalls: TrackedToolCall[]) => {
@@ -348,7 +348,7 @@ describe('useGeminiStream', () => {
       mockMarkToolsAsSubmitted,
     ]);
 
-    const client = geminiClient || mockConfig.getGeminiClient();
+    const client = xaiClient || mockConfig.getXaiClient();
 
     const { result, rerender } = renderHook(
       (props: {
@@ -504,7 +504,7 @@ describe('useGeminiStream', () => {
     ]);
     const { rerender } = renderHook(() =>
       useGeminiStream(
-        new MockedGeminiClientClass(mockConfig),
+        new MockedXaiClientClass(mockConfig),
         [],
         mockAddItem,
         mockSetShowHelp,
@@ -559,7 +559,7 @@ describe('useGeminiStream', () => {
         responseSubmittedToGemini: false,
       } as TrackedCancelledToolCall,
     ];
-    const client = new MockedGeminiClientClass(mockConfig);
+    const client = new MockedXaiClientClass(mockConfig);
 
     // 1. First render: no tool calls.
     mockUseReactToolScheduler.mockReturnValue([
@@ -938,7 +938,7 @@ describe('useGeminiStream', () => {
 
       const { result, rerender } = renderHook(() =>
         useGeminiStream(
-          new MockedGeminiClientClass(mockConfig),
+          new MockedXaiClientClass(mockConfig),
           [],
           mockAddItem,
           mockSetShowHelp,
@@ -1061,7 +1061,7 @@ describe('useGeminiStream', () => {
 
       const { result } = renderHook(() =>
         useGeminiStream(
-          new MockedGeminiClientClass(testConfig),
+          new MockedXaiClientClass(testConfig),
           [],
           mockAddItem,
           mockSetShowHelp,

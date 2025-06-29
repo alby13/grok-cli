@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { runNonInteractive } from './nonInteractiveCli.js';
-import { Config, GeminiClient, ToolRegistry } from '@google/gemini-cli-core';
+import { Config, XaiClient, ToolRegistry } from '@google/gemini-cli-core';
 import { GenerateContentResponse, Part, FunctionCall } from '@google/genai';
 
 // Mock dependencies
@@ -17,7 +17,7 @@ vi.mock('@google/gemini-cli-core', async () => {
   >('@google/gemini-cli-core');
   return {
     ...actualCore,
-    GeminiClient: vi.fn(),
+    XaiClient: vi.fn(),
     ToolRegistry: vi.fn(),
     executeToolCall: vi.fn(),
   };
@@ -25,7 +25,7 @@ vi.mock('@google/gemini-cli-core', async () => {
 
 describe('runNonInteractive', () => {
   let mockConfig: Config;
-  let mockGeminiClient: GeminiClient;
+  let mockXaiClient: XaiClient;
   let mockToolRegistry: ToolRegistry;
   let mockChat: {
     sendMessageStream: ReturnType<typeof vi.fn>;
@@ -38,20 +38,20 @@ describe('runNonInteractive', () => {
     mockChat = {
       sendMessageStream: vi.fn(),
     };
-    mockGeminiClient = {
+    mockXaiClient = { // Corrected this line
       getChat: vi.fn().mockResolvedValue(mockChat),
-    } as unknown as GeminiClient;
+    } as unknown as XaiClient;
     mockToolRegistry = {
       getFunctionDeclarations: vi.fn().mockReturnValue([]),
       getTool: vi.fn(),
     } as unknown as ToolRegistry;
 
-    vi.mocked(GeminiClient).mockImplementation(() => mockGeminiClient);
+    vi.mocked(XaiClient).mockImplementation(() => mockXaiClient); // Corrected this line
     vi.mocked(ToolRegistry).mockImplementation(() => mockToolRegistry);
 
     mockConfig = {
       getToolRegistry: vi.fn().mockReturnValue(mockToolRegistry),
-      getGeminiClient: vi.fn().mockReturnValue(mockGeminiClient),
+      getXaiClient: vi.fn().mockReturnValue(mockXaiClient), // Corrected this line
       getContentGeneratorConfig: vi.fn().mockReturnValue({}),
     } as unknown as Config;
 

@@ -67,7 +67,7 @@ import {
   MCPServerStatus,
   getMCPDiscoveryState,
   getMCPServerStatus,
-  GeminiClient,
+  XaiClient,
 } from '@google/gemini-cli-core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import { LoadedSettings } from '../../config/settings.js';
@@ -100,7 +100,7 @@ describe('useSlashCommandProcessor', () => {
   let mockPerformMemoryRefresh: ReturnType<typeof vi.fn>;
   let mockSetQuittingMessages: ReturnType<typeof vi.fn>;
   let mockTryCompressChat: ReturnType<typeof vi.fn>;
-  let mockGeminiClient: GeminiClient;
+  let mockXaiClient: XaiClient;
   let mockConfig: Config;
   let mockCorgiMode: ReturnType<typeof vi.fn>;
   const mockUseSessionStats = useSessionStats as Mock;
@@ -118,12 +118,12 @@ describe('useSlashCommandProcessor', () => {
     mockPerformMemoryRefresh = vi.fn().mockResolvedValue(undefined);
     mockSetQuittingMessages = vi.fn();
     mockTryCompressChat = vi.fn();
-    mockGeminiClient = {
+    mockXaiClient = { // Corrected variable name
       tryCompressChat: mockTryCompressChat,
-    } as unknown as GeminiClient;
+    } as unknown as XaiClient;
     mockConfig = {
       getDebugMode: vi.fn(() => false),
-      getGeminiClient: () => mockGeminiClient,
+      getXaiClient: () => mockXaiClient, // Corrected to use renamed mockXaiClient
       getSandbox: vi.fn(() => 'test-sandbox'),
       getModel: vi.fn(() => 'test-model'),
       getProjectRoot: vi.fn(() => '/test/dir'),
@@ -353,7 +353,7 @@ describe('useSlashCommandProcessor', () => {
 
       const { result } = renderHook(() =>
         useSlashCommandProcessor(
-          mockConfig,
+          { ...mockConfig, getXaiClient: () => ({}) } as unknown as Config, // Corrected this line
           settings,
           [],
           mockAddItem,
@@ -1264,7 +1264,7 @@ describe('useSlashCommandProcessor', () => {
         hook.rerender();
       });
       expect(hook.result.current.pendingHistoryItems).toEqual([]);
-      expect(mockGeminiClient.tryCompressChat).toHaveBeenCalledWith(true);
+      expect(mockXaiClient.tryCompressChat).toHaveBeenCalledWith(true);
       expect(mockAddItem).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({

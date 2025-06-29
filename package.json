@@ -19,6 +19,7 @@
     "build:all": "npm run build && npm run build:sandbox",
     "clean": "node scripts/clean.js",
     "prepare": "npm run bundle",
+    "pretest": "npm run generate",
     "test": "npm run test --workspaces",
     "test:ci": "npm run test:ci --workspaces --if-present",
     "test:e2e": "npm run test:integration:sandbox:none -- --verbose --keep-output",
@@ -82,7 +83,7 @@
     "prettier": "^3.5.3",
     "react-devtools-core": "^4.28.5",
     "typescript-eslint": "^8.30.1",
+    "vitest": "^3.2.4",
     "yargs": "^17.7.2"
-  },
-  "dependencies": {}
+  }
 }

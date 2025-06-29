@@ -15,7 +15,7 @@ vi.mock('../utils/editCorrector.js', () => ({
 }));
 
 vi.mock('../core/client.js', () => ({
-  GeminiClient: vi.fn().mockImplementation(() => ({
+  XaiClient: vi.fn().mockImplementation(() => ({
     generateJson: mockGenerateJson,
   })),
 }));
@@ -50,7 +50,7 @@ describe('EditTool', () => {
     };
 
     mockConfig = {
-      getGeminiClient: vi
+      getXaiClient: vi
         .fn()
         .mockReturnValue(mockClientInstanceWithGenerateJson),
       getTargetDir: () => rootDir,

@@ -112,10 +112,10 @@ export class WebSearchTool extends BaseTool<
         returnDisplay: validationError,
       };
     }
-    const geminiClient = this.config.getGeminiClient();
+    const xaiClient = this.config.getXaiClient();
 
     try {
-      const response = await geminiClient.generateContent(
+      const response = await xaiClient.generateContent(
         [{ role: 'user', parts: [{ text: params.query }] }],
         { tools: [{ googleSearch: {} }] },
         signal,

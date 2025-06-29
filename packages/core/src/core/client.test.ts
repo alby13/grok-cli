@@ -12,7 +12,7 @@ import {
   GenerateContentResponse,
   GoogleGenAI,
 } from '@google/genai';
-import { GeminiClient } from './client.js';
+import { XaiClient } from './client.js';
 import { AuthType, ContentGenerator } from './contentGenerator.js';
 import { GeminiChat } from './geminiChat.js';
 import { Config } from '../config/config.js';
@@ -64,8 +64,8 @@ vi.mock('../telemetry/index.js', () => ({
   logApiError: vi.fn(),
 }));
 
-describe('Gemini Client (client.ts)', () => {
-  let client: GeminiClient;
+describe('Xai Client (client.ts)', () => {
+  let xaiClient: XaiClient;
   beforeEach(async () => {
     vi.resetAllMocks();
 
@@ -138,8 +138,8 @@ describe('Gemini Client (client.ts)', () => {
     // and the constructor will use the mocked GoogleGenAI
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockConfig = new Config({} as any);
-    client = new GeminiClient(mockConfig);
-    await client.initialize(contentGeneratorConfig);
+    xaiClient = new XaiClient(mockConfig);
+    await xaiClient.initialize(contentGeneratorConfig);
   });
 
   afterEach(() => {
@@ -148,10 +148,10 @@ describe('Gemini Client (client.ts)', () => {
 
   // NOTE: The following tests for startChat were removed due to persistent issues with
   // the @google/genai mock. Specifically, the mockChatCreateFn (representing instance.chats.create)
-  // was not being detected as called by the GeminiClient instance.
+  // was not being detected as called by the XaiClient instance.
   // This likely points to a subtle issue in how the GoogleGenerativeAI class constructor
   // and its instance methods are mocked and then used by the class under test.
-  // For future debugging, ensure that the `this.client` in `GeminiClient` (which is an
+  // For future debugging, ensure that the `this.client` in `XaiClient` (which is an
   // instance of the mocked GoogleGenerativeAI) correctly has its `chats.create` method
   // pointing to `mockChatCreateFn`.
   // it('startChat should call getCoreSystemPrompt with userMemory and pass to chats.create', async () => { ... });
@@ -161,7 +161,7 @@ describe('Gemini Client (client.ts)', () => {
   // the @google/genai mock, similar to the startChat tests. The mockGenerateContentFn
   // (representing instance.models.generateContent) was not being detected as called, or the mock
   // was not preventing an actual API call (leading to API key errors).
-  // For future debugging, ensure `this.client.models.generateContent` in `GeminiClient` correctly
+  // For future debugging, ensure `this.client.models.generateContent` in `XaiClient` correctly
   // uses the `mockGenerateContentFn`.
   // it('generateJson should call getCoreSystemPrompt with userMemory and pass to generateContent', async () => { ... });
   // it('generateJson should call getCoreSystemPrompt with empty string if userMemory is empty', async () => { ... });
@@ -183,7 +183,7 @@ describe('Gemini Client (client.ts)', () => {
       };
       mockEmbedContentFn.mockResolvedValue(mockResponse);
 
-      const result = await client.generateEmbedding(texts);
+      const result = await xaiClient.generateEmbedding(texts);
 
       expect(mockEmbedContentFn).toHaveBeenCalledTimes(1);
       expect(mockEmbedContentFn).toHaveBeenCalledWith({
@@ -194,7 +194,7 @@ describe('Gemini Client (client.ts)', () => {
     });
 
     it('should return an empty array if an empty array is passed', async () => {
-      const result = await client.generateEmbedding([]);
+      const result = await xaiClient.generateEmbedding([]);
       expect(result).toEqual([]);
       expect(mockEmbedContentFn).not.toHaveBeenCalled();
     });
@@ -202,7 +202,7 @@ describe('Gemini Client (client.ts)', () => {
     it('should throw an error if API response has no embeddings array', async () => {
       mockEmbedContentFn.mockResolvedValue({} as EmbedContentResponse); // No `embeddings` key
 
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'No embeddings found in API response.',
       );
     });
@@ -212,7 +212,7 @@ describe('Gemini Client (client.ts)', () => {
         embeddings: [],
       };
       mockEmbedContentFn.mockResolvedValue(mockResponse);
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'No embeddings found in API response.',
       );
     });
@@ -223,7 +223,7 @@ describe('Gemini Client (client.ts)', () => {
       };
       mockEmbedContentFn.mockResolvedValue(mockResponse);
 
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'API returned a mismatched number of embeddings. Expected 2, got 1.',
       );
     });
@@ -234,7 +234,7 @@ describe('Gemini Client (client.ts)', () => {
       };
       mockEmbedContentFn.mockResolvedValue(mockResponse);
 
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'API returned an empty embedding for input text at index 1: "goodbye world"',
       );
     });
@@ -245,7 +245,7 @@ describe('Gemini Client (client.ts)', () => {
       };
       mockEmbedContentFn.mockResolvedValue(mockResponse);
 
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'API returned an empty embedding for input text at index 0: "hello world"',
       );
     });
@@ -254,7 +254,7 @@ describe('Gemini Client (client.ts)', () => {
       const apiError = new Error('API Failure');
       mockEmbedContentFn.mockRejectedValue(apiError);
 
-      await expect(client.generateEmbedding(texts)).rejects.toThrow(
+      await expect(xaiClient.generateEmbedding(texts)).rejects.toThrow(
         'API Failure',
       );
     });
@@ -271,9 +271,9 @@ describe('Gemini Client (client.ts)', () => {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 1 }),
         generateContent: mockGenerateContentFn,
       };
-      client['contentGenerator'] = mockGenerator as ContentGenerator;
+      xaiClient['contentGenerator'] = mockGenerator as ContentGenerator;
 
-      await client.generateContent(contents, generationConfig, abortSignal);
+      await xaiClient.generateContent(contents, generationConfig, abortSignal);
 
       expect(mockGenerateContentFn).toHaveBeenCalledWith({
         model: 'test-model',
@@ -299,9 +299,9 @@ describe('Gemini Client (client.ts)', () => {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 1 }),
         generateContent: mockGenerateContentFn,
       };
-      client['contentGenerator'] = mockGenerator as ContentGenerator;
+      xaiClient['contentGenerator'] = mockGenerator as ContentGenerator;
 
-      await client.generateJson(contents, schema, abortSignal);
+      await xaiClient.generateJson(contents, schema, abortSignal);
 
       expect(mockGenerateContentFn).toHaveBeenCalledWith({
         model: DEFAULT_GEMINI_FLASH_MODEL,
@@ -324,13 +324,13 @@ describe('Gemini Client (client.ts)', () => {
         addHistory: vi.fn(),
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      client['chat'] = mockChat as any;
+      xaiClient['chat'] = mockChat as any;
 
       const newContent = {
         role: 'user',
         parts: [{ text: 'New history item' }],
       };
-      await client.addHistory(newContent);
+      await xaiClient.addHistory(newContent);
 
       expect(mockChat.addHistory).toHaveBeenCalledWith(newContent);
     });
@@ -339,23 +339,23 @@ describe('Gemini Client (client.ts)', () => {
   describe('resetChat', () => {
     it('should create a new chat session, clearing the old history', async () => {
       // 1. Get the initial chat instance and add some history.
-      const initialChat = await client.getChat();
-      const initialHistory = await client.getHistory();
-      await client.addHistory({
+      const initialChat = await xaiClient.getChat();
+      const initialHistory = await xaiClient.getHistory();
+      await xaiClient.addHistory({
         role: 'user',
         parts: [{ text: 'some old message' }],
       });
-      const historyWithOldMessage = await client.getHistory();
+      const historyWithOldMessage = await xaiClient.getHistory();
       expect(historyWithOldMessage.length).toBeGreaterThan(
         initialHistory.length,
       );
 
       // 2. Call resetChat.
-      await client.resetChat();
+      await xaiClient.resetChat();
 
       // 3. Get the new chat instance and its history.
-      const newChat = await client.getChat();
-      const newHistory = await client.getHistory();
+      const newChat = await xaiClient.getChat();
+      const newHistory = await xaiClient.getHistory();
 
       // 4. Assert that the chat instance is new and the history is reset.
       expect(newChat).not.toBe(initialChat);

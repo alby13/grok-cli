@@ -55,10 +55,10 @@ export async function runNonInteractive(
     }
   });
 
-  const geminiClient = config.getGeminiClient();
+  const xaiClient = config.getXaiClient();
   const toolRegistry: ToolRegistry = await config.getToolRegistry();
 
-  const chat = await geminiClient.getChat();
+  const chat = await xaiClient.getChat();
   const abortController = new AbortController();
   let currentMessages: Content[] = [{ role: 'user', parts: [{ text: input }] }];
 
