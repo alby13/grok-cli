@@ -1,68 +1,61 @@
 /**
  * @license
- * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-import {
-  DEFAULT_GEMINI_MODEL,
-  DEFAULT_GEMINI_FLASH_MODEL,
-} from '../config/models.js';
+import OpenAI from 'openai';
+import { getErrorMessage } from '../utils/errors.js';
 
 /**
- * Checks if the default "pro" model is rate-limited and returns a fallback "flash"
- * model if necessary. This function is designed to be silent.
- * @param apiKey The API key to use for the check.
- * @param currentConfiguredModel The model currently configured in settings.
- * @returns An object indicating the model to use, whether a switch occurred,
- *          and the original model if a switch happened.
+ * Validates that a configured model is available from the xAI API using the
+ * provided API key.
+ *
+ * @param apiKey The xAI API key.
+ * @param configuredModel The model name from the user's configuration (e.g., "grok-3").
+ * @returns The validated model name if successful.
+ * @throws An error if the API key is invalid, the connection fails, or the
+ *         model is not in the list of available models.
  */
-export async function getEffectiveModel(
+export async function validateModel(
   apiKey: string,
-  currentConfiguredModel: string,
+  configuredModel: string,
 ): Promise<string> {
-  if (currentConfiguredModel !== DEFAULT_GEMINI_MODEL) {
-    // Only check if the user is trying to use the specific pro model we want to fallback from.
-    return currentConfiguredModel;
-  }
-
-  const modelToTest = DEFAULT_GEMINI_MODEL;
-  const fallbackModel = DEFAULT_GEMINI_FLASH_MODEL;
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToTest}:generateContent?key=${apiKey}`;
-  const body = JSON.stringify({
-    contents: [{ parts: [{ text: 'test' }] }],
-    generationConfig: {
-      maxOutputTokens: 1,
-      temperature: 0,
-      topK: 1,
-      thinkingConfig: { thinkingBudget: 0, includeThoughts: false },
-    },
+  // We don't need a proxy agent for this simple check.
+  const client = new OpenAI({
+    apiKey: apiKey,
+    baseURL: 'https://api.x.ai/v1',
   });
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000); // 500ms timeout for the request
-
   try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      signal: controller.signal,
-    });
+    const response = await client.models.list();
+    const availableModels = response.data.map((model) => model.id);
 
-    clearTimeout(timeoutId);
-
-    if (response.status === 429) {
-      console.log(
-        `[INFO] Your configured model (${modelToTest}) was temporarily unavailable. Switched to ${fallbackModel} for this session.`,
+    if (availableModels.includes(configuredModel)) {
+      // Success! The configured model is valid.
+      return configuredModel;
+    } else {
+      // The configured model is not in the list of available models.
+      throw new Error(
+        `The configured model "${configuredModel}" is not available.` +
+        `\nAvailable models for your API key are: ${availableModels.join(', ')}`,
       );
-      return fallbackModel;
     }
-    // For any other case (success, other error codes), we stick to the original model.
-    return currentConfiguredModel;
-  } catch (_error) {
-    clearTimeout(timeoutId);
-    // On timeout or any other fetch error, stick to the original model.
-    return currentConfiguredModel;
+  } catch (e: unknown) {
+    // Check for specific authentication errors from the OpenAI SDK.
+    if (e instanceof OpenAI.APIError) {
+      if (e.status === 401) {
+        throw new Error(
+          'Failed to validate model: The provided XAI_API_KEY is invalid or has expired.',
+        );
+      }
+      // Re-throw other API errors with more context.
+      throw new Error(
+        `Failed to validate model due to an API error: ${e.message} (Status: ${e.status})`,
+      );
+    }
+
+    // Handle generic network errors.
+    throw new Error(`Failed to connect to the xAI API to validate the model: ${getErrorMessage(e)}`);
   }
 }
