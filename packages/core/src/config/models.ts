@@ -4,6 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-pro';
-export const DEFAULT_GEMINI_FLASH_MODEL = 'gemini-2.5-flash';
-export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-001';
+export const DEFAULT_GROK_MODEL = 'grok-3-latest';
+export const DEFAULT_GROK_FLASH_MODEL = 'grok-3-latest'; // Using same for now
+export const DEFAULT_GROK_EMBEDDING_MODEL = 'grok-embedding-default'; // Placeholder, actual Grok embedding model TBD

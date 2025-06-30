@@ -229,7 +229,7 @@ export const useSlashCommandProcessor = (
         action: async (_mainCommand, _subCommand, _args) => {
           onDebugMessage('Clearing terminal and resetting chat.');
           clearItems();
-          await config?.getXaiClient()?.resetChat();
+          await config?.getGrokClient()?.resetChat();
           console.clear();
           refreshStatic();
         },
@@ -690,7 +690,7 @@ export const useSlashCommandProcessor = (
           const tag = (args || '').trim();
           const logger = new Logger(config?.getSessionId() || '');
           await logger.initialize();
-          const chat = await config?.getXaiClient()?.getChat();
+          const chat = await config?.getGrokClient()?.getChat();
           if (!chat) {
             addMessage({
               type: MessageType.ERROR,
@@ -854,7 +854,7 @@ export const useSlashCommandProcessor = (
           });
           try {
             const compressed = await config!
-              .getXaiClient()!
+              .getGrokClient()!
               .tryCompressChat(true);
             if (compressed) {
               addMessage({
@@ -975,7 +975,7 @@ export const useSlashCommandProcessor = (
 
             if (toolCallData.clientHistory) {
               await config
-                ?.getXaiClient()
+                ?.getGrokClient()
                 ?.setHistory(toolCallData.clientHistory);
             }
 

@@ -19,7 +19,7 @@ import {
   GenerateContentResponseUsageMetadata,
 } from '@google/genai';
 import { reportError } from '../utils/errorReporting.js';
-import { GeminiChat } from './geminiChat.js';
+import { GrokChat } from './grokChat.js';
 
 const mockSendMessageStream = vi.fn();
 const mockGetHistory = vi.fn();
@@ -79,7 +79,7 @@ describe('Turn', () => {
       sendMessageStream: mockSendMessageStream,
       getHistory: mockGetHistory,
     };
-    turn = new Turn(mockChatInstance as unknown as GeminiChat);
+    turn = new Turn(mockChatInstance as unknown as GrokChat);
     mockGetHistory.mockReturnValue([]);
     mockSendMessageStream.mockResolvedValue((async function* () {})());
   });

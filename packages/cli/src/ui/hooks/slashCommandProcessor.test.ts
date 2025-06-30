@@ -67,7 +67,7 @@ import {
   MCPServerStatus,
   getMCPDiscoveryState,
   getMCPServerStatus,
-  XaiClient,
+  GrokClient,
 } from '@google/gemini-cli-core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import { LoadedSettings } from '../../config/settings.js';
@@ -100,7 +100,7 @@ describe('useSlashCommandProcessor', () => {
   let mockPerformMemoryRefresh: ReturnType<typeof vi.fn>;
   let mockSetQuittingMessages: ReturnType<typeof vi.fn>;
   let mockTryCompressChat: ReturnType<typeof vi.fn>;
-  let mockXaiClient: XaiClient;
+  let mockGrokClient: GrokClient;
   let mockConfig: Config;
   let mockCorgiMode: ReturnType<typeof vi.fn>;
   const mockUseSessionStats = useSessionStats as Mock;
@@ -118,12 +118,12 @@ describe('useSlashCommandProcessor', () => {
     mockPerformMemoryRefresh = vi.fn().mockResolvedValue(undefined);
     mockSetQuittingMessages = vi.fn();
     mockTryCompressChat = vi.fn();
-    mockXaiClient = { // Corrected variable name
+    mockGrokClient = {
       tryCompressChat: mockTryCompressChat,
-    } as unknown as XaiClient;
+    } as unknown as GrokClient;
     mockConfig = {
       getDebugMode: vi.fn(() => false),
-      getXaiClient: () => mockXaiClient, // Corrected to use renamed mockXaiClient
+      getGrokClient: () => mockGrokClient,
       getSandbox: vi.fn(() => 'test-sandbox'),
       getModel: vi.fn(() => 'test-model'),
       getProjectRoot: vi.fn(() => '/test/dir'),
@@ -353,7 +353,7 @@ describe('useSlashCommandProcessor', () => {
 
       const { result } = renderHook(() =>
         useSlashCommandProcessor(
-          { ...mockConfig, getXaiClient: () => ({}) } as unknown as Config, // Corrected this line
+          { ...mockConfig, getGrokClient: () => ({}) } as unknown as Config,
           settings,
           [],
           mockAddItem,
@@ -434,7 +434,7 @@ describe('useSlashCommandProcessor', () => {
       const mockResetChat = vi.fn();
       mockConfig = {
         ...mockConfig,
-        getGeminiClient: () => ({
+        getGrokClient: () => ({
           resetChat: mockResetChat,
         }),
       } as unknown as Config;
@@ -1264,7 +1264,7 @@ describe('useSlashCommandProcessor', () => {
         hook.rerender();
       });
       expect(hook.result.current.pendingHistoryItems).toEqual([]);
-      expect(mockXaiClient.tryCompressChat).toHaveBeenCalledWith(true);
+      expect(mockGrokClient.tryCompressChat).toHaveBeenCalledWith(true);
       expect(mockAddItem).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({

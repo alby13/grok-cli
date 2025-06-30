@@ -52,8 +52,8 @@ vi.mock('../core/contentGenerator.js', async (importOriginal) => {
 });
 
 vi.mock('../core/client.js', () => ({
-  XaiClient: vi.fn().mockImplementation(() => ({
-    // Mock any methods on XaiClient that might be used.
+  GrokClient: vi.fn().mockImplementation(() => ({
+    // Mock any methods on GrokClient that might be used.
   })),
 }));
 
@@ -120,7 +120,7 @@ describe('Server Config (config.ts)', () => {
   //       authType,
   //     );
   //     expect(config.getContentGeneratorConfig()).toEqual(mockContentConfig);
-  //     expect(XaiClient).toHaveBeenCalledWith(config);
+  //     expect(GrokClient).toHaveBeenCalledWith(config);
   //   });
   // });
 

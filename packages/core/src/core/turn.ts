@@ -19,7 +19,7 @@ import {
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { reportError } from '../utils/errorReporting.js';
 import { getErrorMessage } from '../utils/errors.js';
-import { GeminiChat } from './geminiChat.js';
+import { GrokChat } from './grokChat.js';
 import { UnauthorizedError, toFriendlyError } from '../utils/errors.js';
 
 // Define a structure for tools passed to the server
@@ -37,7 +37,7 @@ export interface ServerTool {
   ): Promise<ToolCallConfirmationDetails | false>;
 }
 
-export enum GeminiEventType {
+export enum GrokEventType {
   Content = 'content',
   ToolCallRequest = 'tool_call_request',
   ToolCallResponse = 'tool_call_response',
@@ -54,7 +54,7 @@ export interface StructuredError {
   status?: number;
 }
 
-export interface GeminiErrorEventValue {
+export interface GrokErrorEventValue { // Renamed
   error: StructuredError;
 }
 
@@ -82,38 +82,38 @@ export type ThoughtSummary = {
   description: string;
 };
 
-export type ServerGeminiContentEvent = {
-  type: GeminiEventType.Content;
+export type ServerGrokContentEvent = {
+  type: GrokEventType.Content;
   value: string;
 };
 
-export type ServerGeminiThoughtEvent = {
-  type: GeminiEventType.Thought;
+export type ServerGrokThoughtEvent = {
+  type: GrokEventType.Thought;
   value: ThoughtSummary;
 };
 
-export type ServerGeminiToolCallRequestEvent = {
-  type: GeminiEventType.ToolCallRequest;
+export type ServerGrokToolCallRequestEvent = {
+  type: GrokEventType.ToolCallRequest;
   value: ToolCallRequestInfo;
 };
 
-export type ServerGeminiToolCallResponseEvent = {
-  type: GeminiEventType.ToolCallResponse;
+export type ServerGrokToolCallResponseEvent = {
+  type: GrokEventType.ToolCallResponse;
   value: ToolCallResponseInfo;
 };
 
-export type ServerGeminiToolCallConfirmationEvent = {
-  type: GeminiEventType.ToolCallConfirmation;
+export type ServerGrokToolCallConfirmationEvent = {
+  type: GrokEventType.ToolCallConfirmation;
   value: ServerToolCallConfirmationDetails;
 };
 
-export type ServerGeminiUserCancelledEvent = {
-  type: GeminiEventType.UserCancelled;
+export type ServerGrokUserCancelledEvent = {
+  type: GrokEventType.UserCancelled;
 };
 
-export type ServerGeminiErrorEvent = {
-  type: GeminiEventType.Error;
-  value: GeminiErrorEventValue;
+export type ServerGrokErrorEvent = {
+  type: GrokEventType.Error;
+  value: GrokErrorEventValue;
 };
 
 export interface ChatCompressionInfo {
@@ -122,26 +122,26 @@ export interface ChatCompressionInfo {
 }
 
 export type ServerGeminiChatCompressedEvent = {
-  type: GeminiEventType.ChatCompressed;
+  type: GrokEventType.ChatCompressed; // Updated
   value: ChatCompressionInfo | null;
 };
 
-export type ServerGeminiUsageMetadataEvent = {
-  type: GeminiEventType.UsageMetadata;
+export type ServerGrokUsageMetadataEvent = {
+  type: GrokEventType.UsageMetadata; // Updated
   value: GenerateContentResponseUsageMetadata & { apiTimeMs?: number };
 };
 
 // The original union type, now composed of the individual types
-export type ServerGeminiStreamEvent =
-  | ServerGeminiContentEvent
-  | ServerGeminiToolCallRequestEvent
-  | ServerGeminiToolCallResponseEvent
-  | ServerGeminiToolCallConfirmationEvent
-  | ServerGeminiUserCancelledEvent
-  | ServerGeminiErrorEvent
-  | ServerGeminiChatCompressedEvent
-  | ServerGeminiUsageMetadataEvent
-  | ServerGeminiThoughtEvent;
+export type ServerGrokStreamEvent =
+  | ServerGrokContentEvent
+  | ServerGrokToolCallRequestEvent
+  | ServerGrokToolCallResponseEvent
+  | ServerGrokToolCallConfirmationEvent
+  | ServerGrokUserCancelledEvent
+  | ServerGrokErrorEvent
+  | ServerGrokChatCompressedEvent
+  | ServerGrokUsageMetadataEvent
+  | ServerGrokThoughtEvent;
 
 // A turn manages the agentic loop turn within the server context.
 export class Turn {
@@ -149,7 +149,7 @@ export class Turn {
   private debugResponses: GenerateContentResponse[];
   private lastUsageMetadata: GenerateContentResponseUsageMetadata | null = null;
 
-  constructor(private readonly chat: GeminiChat) {
+  constructor(private readonly chat: GrokChat) {
     this.pendingToolCalls = [];
     this.debugResponses = [];
   }
@@ -157,7 +157,7 @@ export class Turn {
   async *run(
     req: PartListUnion,
     signal: AbortSignal,
-  ): AsyncGenerator<ServerGeminiStreamEvent> {
+  ): AsyncGenerator<ServerGrokStreamEvent> { // Updated return type
     const startTime = Date.now();
     try {
       const responseStream = await this.chat.sendMessageStream({

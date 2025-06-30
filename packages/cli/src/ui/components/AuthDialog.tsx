@@ -29,21 +29,17 @@ export function AuthDialog({
     initialErrorMessage || null,
   );
   const items = [
-    {
-      label: 'Login with Google',
-      value: AuthType.LOGIN_WITH_GOOGLE_PERSONAL,
-    },
-    { label: 'Gemini API Key', value: AuthType.USE_GEMINI },
-    { label: 'Vertex AI', value: AuthType.USE_VERTEX_AI },
+    // Only Grok API Key is supported
+    { label: 'Grok API Key', value: AuthType.USE_GROK_API_KEY },
   ];
 
-  let initialAuthIndex = items.findIndex(
-    (item) => item.value === settings.merged.selectedAuthType,
-  );
-
-  if (initialAuthIndex === -1) {
+  // Since there's only one option, it's always the initial index if selected, or default to 0.
+  let initialAuthIndex = settings.merged.selectedAuthType === AuthType.USE_GROK_API_KEY ? 0 : 0;
+  // If no auth type is set, default to selecting the Grok API Key option
+  if (settings.merged.selectedAuthType === undefined) {
     initialAuthIndex = 0;
   }
+
 
   const handleAuthSelect = (authMethod: string) => {
     const error = validateAuthMethod(authMethod);

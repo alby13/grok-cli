@@ -7,7 +7,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 import { useShellCommandProcessor } from './shellCommandProcessor';
-import { Config, XaiClient } from '@google/gemini-cli-core';
+import { Config, GrokClient } from '@google/gemini-cli-core';
 import * as fs from 'fs';
 import EventEmitter from 'events';
 
@@ -34,7 +34,7 @@ describe('useShellCommandProcessor', () => {
   let onExecMock: vi.Mock;
   let onDebugMessageMock: vi.Mock;
   let configMock: Config;
-  let xaiClientMock: XaiClient;
+  let grokClientMock: GrokClient;
 
   beforeEach(async () => {
     const { spawn } = await import('child_process');
@@ -56,9 +56,9 @@ describe('useShellCommandProcessor', () => {
       getTargetDir: () => '/test/dir',
     } as unknown as Config;
 
-    geminiClientMock = {
+    grokClientMock = {
       addHistory: vi.fn(),
-    } as unknown as XaiClient;
+    } as unknown as GrokClient;
   });
 
   afterEach(() => {
@@ -73,7 +73,7 @@ describe('useShellCommandProcessor', () => {
         onExecMock,
         onDebugMessageMock,
         configMock,
-        geminiClientMock,
+        grokClientMock,
       ),
     );
 
@@ -107,7 +107,7 @@ describe('useShellCommandProcessor', () => {
       type: 'info',
       text: 'file1.txt\nfile2.txt',
     });
-    expect(geminiClientMock.addHistory).toHaveBeenCalledTimes(1);
+    expect(grokClientMock.addHistory).toHaveBeenCalledTimes(1);
   });
 
   it('should handle binary output', async () => {

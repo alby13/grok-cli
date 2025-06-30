@@ -4,7 +4,7 @@
 
 # Determine the project directory
 PROJECT_DIR=$(cd "$(dirname "$0")/.." && pwd)
-ALIAS_COMMAND="alias gemini='$PROJECT_DIR/scripts/start.sh'"
+ALIAS_COMMAND="alias grok='$PROJECT_DIR/scripts/start.sh'"
 
 # Detect shell and set config file path
 if [[ "$SHELL" == *"/bash" ]]; then
@@ -21,8 +21,8 @@ echo "  $ALIAS_COMMAND"
 echo ""
 
 # Check if the alias already exists
-if grep -q "alias gemini=" "$CONFIG_FILE"; then
-    echo "A 'gemini' alias already exists in $CONFIG_FILE. No changes were made."
+if grep -q "alias grok=" "$CONFIG_FILE"; then
+    echo "A 'grok' alias already exists in $CONFIG_FILE. No changes were made."
     exit 0
 fi
 
@@ -32,7 +32,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "$ALIAS_COMMAND" >> "$CONFIG_FILE"
     echo ""
     echo "Alias added to $CONFIG_FILE."
-    echo "Please run 'source $CONFIG_FILE' or open a new terminal to use the 'gemini' command."
+    echo "Please run 'source $CONFIG_FILE' or open a new terminal to use the 'grok' command."
 else
     echo "Aborted. No changes were made."
 fi

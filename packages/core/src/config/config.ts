@@ -23,7 +23,7 @@ import { WebFetchTool } from '../tools/web-fetch.js';
 import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
-import { XaiClient } from '../core/client.js';
+import { GrokClient } from '../core/client.js';
 import { GEMINI_CONFIG_DIR as GEMINI_DIR } from '../tools/memoryTool.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
@@ -151,7 +151,7 @@ export class Config {
   private readonly accessibility: AccessibilitySettings;
   private readonly telemetrySettings: TelemetrySettings;
   private readonly usageStatisticsEnabled: boolean;
-  private xaiClient!: XaiClient;
+  private grokClient!: GrokClient;
   private readonly fileFiltering: {
     respectGitIgnore: boolean;
     enableRecursiveFileSearch: boolean;
@@ -242,7 +242,7 @@ export class Config {
     );
 
     const client = new XaiClient(this);
-    this.xaiClient = client;
+    this.grokClient = client;
     this.toolRegistry = await createToolRegistry(this);
     await client.initialize(contentConfig);
     this.contentGeneratorConfig = contentConfig;
@@ -390,8 +390,8 @@ export class Config {
     return this.telemetrySettings.target ?? DEFAULT_TELEMETRY_TARGET;
   }
 
-  getXaiClient(): XaiClient {
-    return this.xaiClient;
+  getGrokClient(): GrokClient {
+    return this.grokClient;
   }
 
   getGeminiDir(): string {

@@ -23,29 +23,29 @@ const projectHash = crypto
   .update(projectRoot)
   .digest('hex');
 
-// User-level .gemini directory in home
-const USER_GEMINI_DIR = path.join(os.homedir(), '.gemini');
-// Project-level .gemini directory in the workspace
-const WORKSPACE_GEMINI_DIR = path.join(projectRoot, '.gemini');
+// User-level .grok directory in home
+const USER_GROK_DIR = path.join(os.homedir(), '.grok');
+// Project-level .grok directory in the workspace
+const WORKSPACE_GROK_DIR = path.join(projectRoot, '.grok');
 
-// Telemetry artifacts are stored in a hashed directory under the user's ~/.gemini/tmp
-export const OTEL_DIR = path.join(USER_GEMINI_DIR, 'tmp', projectHash, 'otel');
+// Telemetry artifacts are stored in a hashed directory under the user's ~/.grok/tmp
+export const OTEL_DIR = path.join(USER_GROK_DIR, 'tmp', projectHash, 'otel');
 export const BIN_DIR = path.join(OTEL_DIR, 'bin');
 
-// Workspace settings remain in the project's .gemini directory
+// Workspace settings remain in the project's .grok directory
 export const WORKSPACE_SETTINGS_FILE = path.join(
-  WORKSPACE_GEMINI_DIR,
+  WORKSPACE_GROK_DIR,
   'settings.json',
 );
 
 export function getJson(url) {
   const tmpFile = path.join(
     os.tmpdir(),
-    `gemini-cli-releases-${Date.now()}.json`,
+    `grok-cli-releases-${Date.now()}.json`,
   );
   try {
     execSync(
-      `curl -sL -H "User-Agent: gemini-cli-dev-script" -o "${tmpFile}" "${url}"`,
+      `curl -sL -H "User-Agent: grok-cli-dev-script" -o "${tmpFile}" "${url}"`,
       { stdio: 'pipe' },
     );
     const content = fs.readFileSync(tmpFile, 'utf-8');
@@ -217,7 +217,7 @@ export async function ensureBinary(
 
   const downloadUrl = asset.browser_download_url;
   const tmpDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'gemini-cli-telemetry-'),
+    path.join(os.tmpdir(), 'grok-cli-telemetry-'),
   );
   const archivePath = path.join(tmpDir, asset.name);
 

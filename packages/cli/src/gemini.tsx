@@ -101,13 +101,13 @@ export async function main() {
   const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(settings.merged, extensions, sessionId);
 
-  // set default fallback to gemini api key
+  // set default fallback to xai api key
   // this has to go after load cli because thats where the env is set
-  if (!settings.merged.selectedAuthType && process.env.GEMINI_API_KEY) {
+  if (!settings.merged.selectedAuthType && process.env.XAI_API_KEY) {
     settings.setValue(
       SettingScope.User,
       'selectedAuthType',
-      AuthType.USE_GEMINI,
+      AuthType.USE_XAI_API_KEY,
     );
   }
 
@@ -140,7 +140,7 @@ export async function main() {
     const sandboxConfig = config.getSandbox();
     if (sandboxConfig) {
       if (settings.merged.selectedAuthType) {
-        // Validate authentication here because the sandbox will interfere with the Oauth2 web redirect.
+        // Validate authentication.
         try {
           const err = validateAuthMethod(settings.merged.selectedAuthType);
           if (err) {
@@ -211,7 +211,7 @@ export async function main() {
 
 function setWindowTitle(title: string, settings: LoadedSettings) {
   if (!settings.merged.hideWindowTitle) {
-    process.stdout.write(`\x1b]2; Gemini - ${title} \x07`);
+    process.stdout.write(`\x1b]2; Grok - ${title} \x07`);
 
     process.on('exit', () => {
       process.stdout.write(`\x1b]2;\x07`);
@@ -275,16 +275,16 @@ async function validateNonInterActiveAuth(
   nonInteractiveConfig: Config,
 ) {
   // making a special case for the cli. many headless environments might not have a settings.json set
-  // so if GEMINI_API_KEY is set, we'll use that. However since the oauth things are interactive anyway, we'll
+  // so if XAI_API_KEY is set, we'll use that. However since the oauth things are interactive anyway, we'll
   // still expect that exists
-  if (!selectedAuthType && !process.env.GEMINI_API_KEY) {
+  if (!selectedAuthType && !process.env.XAI_API_KEY) {
     console.error(
-      'Please set an Auth method in your .gemini/settings.json OR specify GEMINI_API_KEY env variable file before running',
+      'Please set an Auth method in your .grok/settings.json OR specify XAI_API_KEY env variable file before running',
     );
     process.exit(1);
   }
 
-  selectedAuthType = selectedAuthType || AuthType.USE_GEMINI;
+  selectedAuthType = selectedAuthType || AuthType.USE_XAI_API_KEY;
   const err = validateAuthMethod(selectedAuthType);
   if (err != null) {
     console.error(err);

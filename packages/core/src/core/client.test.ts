@@ -12,9 +12,9 @@ import {
   GenerateContentResponse,
   GoogleGenAI,
 } from '@google/genai';
-import { XaiClient } from './client.js';
+import { GrokClient } from './client.js';
 import { AuthType, ContentGenerator } from './contentGenerator.js';
-import { GeminiChat } from './geminiChat.js';
+import { GrokChat } from './grokChat.js';
 import { Config } from '../config/config.js';
 import { Turn } from './turn.js';
 import { getCoreSystemPrompt } from './prompts.js';
@@ -64,8 +64,8 @@ vi.mock('../telemetry/index.js', () => ({
   logApiError: vi.fn(),
 }));
 
-describe('Xai Client (client.ts)', () => {
-  let xaiClient: XaiClient;
+describe('Grok Client (client.ts)', () => {
+  let grokClient: GrokClient;
   beforeEach(async () => {
     vi.resetAllMocks();
 
@@ -148,10 +148,10 @@ describe('Xai Client (client.ts)', () => {
 
   // NOTE: The following tests for startChat were removed due to persistent issues with
   // the @google/genai mock. Specifically, the mockChatCreateFn (representing instance.chats.create)
-  // was not being detected as called by the XaiClient instance.
+  // was not being detected as called by the GrokClient instance.
   // This likely points to a subtle issue in how the GoogleGenerativeAI class constructor
   // and its instance methods are mocked and then used by the class under test.
-  // For future debugging, ensure that the `this.client` in `XaiClient` (which is an
+  // For future debugging, ensure that the `this.client` in `GrokClient` (which is an
   // instance of the mocked GoogleGenerativeAI) correctly has its `chats.create` method
   // pointing to `mockChatCreateFn`.
   // it('startChat should call getCoreSystemPrompt with userMemory and pass to chats.create', async () => { ... });
@@ -161,7 +161,7 @@ describe('Xai Client (client.ts)', () => {
   // the @google/genai mock, similar to the startChat tests. The mockGenerateContentFn
   // (representing instance.models.generateContent) was not being detected as called, or the mock
   // was not preventing an actual API call (leading to API key errors).
-  // For future debugging, ensure `this.client.models.generateContent` in `XaiClient` correctly
+  // For future debugging, ensure `this.client.models.generateContent` in `GrokClient` correctly
   // uses the `mockGenerateContentFn`.
   // it('generateJson should call getCoreSystemPrompt with userMemory and pass to generateContent', async () => { ... });
   // it('generateJson should call getCoreSystemPrompt with empty string if userMemory is empty', async () => { ... });
@@ -376,7 +376,7 @@ describe('Xai Client (client.ts)', () => {
         addHistory: vi.fn(),
         getHistory: vi.fn().mockReturnValue([]),
       };
-      client['chat'] = mockChat as GeminiChat;
+      grokClient['chat'] = mockChat as GrokChat;
 
       const mockGenerator: Partial<ContentGenerator> = {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 0 }),

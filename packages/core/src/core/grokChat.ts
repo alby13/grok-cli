@@ -7,15 +7,26 @@
 // DISCLAIMER: This is a copied version of https://github.com/googleapis/js-genai/blob/main/src/chats.ts with the intention of working around a key bug
 // where function responses are not treated as "valid" responses: https://b.corp.google.com/issues/420354090
 
-import {
-  GenerateContentResponse,
-  Content,
-  GenerateContentConfig,
-  SendMessageParameters,
-  createUserContent,
-  Part,
-  GenerateContentResponseUsageMetadata,
-} from '@google/genai';
+// TODO: Replace with OpenAI SDK imports or Grok-specific SDK imports
+// import {
+//   GenerateContentResponse,
+//   Content,
+//   GenerateContentConfig,
+//   SendMessageParameters,
+//   createUserContent,
+//   Part,
+//   GenerateContentResponseUsageMetadata,
+// } from '@google/genai';
+
+// Placeholder types until new SDK is integrated
+type GenerateContentResponse = any;
+type Content = any;
+type GenerateContentConfig = any;
+type SendMessageParameters = any;
+type Part = any;
+type GenerateContentResponseUsageMetadata = any;
+const createUserContent = (message: any): Content => ({ role: 'user', parts: [{text: message as string}] }); // Basic mock
+
 import { retryWithBackoff } from '../utils/retry.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
 import { ContentGenerator, AuthType } from './contentGenerator.js';
@@ -34,7 +45,7 @@ import {
   ApiRequestEvent,
   ApiResponseEvent,
 } from '../telemetry/types.js';
-import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import { DEFAULT_GROK_FLASH_MODEL } from '../config/models.js';
 
 /**
  * Returns true if the response is valid, false otherwise.
@@ -130,7 +141,7 @@ function extractCuratedHistory(comprehensiveHistory: Content[]): Content[] {
  * @remarks
  * The session maintains all the turns between user and model.
  */
-export class GeminiChat {
+export class GrokChat {
   // A promise to represent the current state of the message being sent to the
   // model.
   private sendPromise: Promise<void> = Promise.resolve();

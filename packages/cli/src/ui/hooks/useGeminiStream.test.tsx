@@ -29,7 +29,7 @@ const mockSendMessageStream = vi
   .mockReturnValue((async function* () {})());
 const mockStartChat = vi.fn();
 
-const MockedXaiClientClass = vi.hoisted(() =>
+const MockedGrokClientClass = vi.hoisted(() =>
   vi.fn().mockImplementation(function (this: any, _config: any) {
     // _config
     this.startChat = mockStartChat;
@@ -47,7 +47,7 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
   return {
     ...actualCoreModule,
     GitService: vi.fn(),
-    XaiClient: MockedXaiClientClass,
+    GrokClient: MockedGrokClientClass,
     UserPromptEvent: MockedUserPromptEvent,
   };
 });
@@ -259,11 +259,11 @@ describe('useGeminiStream', () => {
 
     mockAddItem = vi.fn();
     mockSetShowHelp = vi.fn();
-    // Define the mock for getXaiClient
-    const mockGetXaiClient = vi.fn().mockImplementation(() => {
-      // MockedXaiClientClass is defined in the module scope by the previous change.
+    // Define the mock for getGrokClient
+    const mockGetGrokClient = vi.fn().mockImplementation(() => {
+      // MockedGrokClientClass is defined in the module scope by the previous change.
       // It will use the mockStartChat and mockSendMessageStream that are managed within beforeEach.
-      const clientInstance = new MockedXaiClientClass(mockConfig);
+      const clientInstance = new MockedGrokClientClass(mockConfig);
       return clientInstance;
     });
 
@@ -292,7 +292,7 @@ describe('useGeminiStream', () => {
       ),
       getProjectRoot: vi.fn(() => '/test/dir'),
       getCheckpointingEnabled: vi.fn(() => false),
-      getXaiClient: mockGetXaiClient,
+      getGrokClient: mockGetGrokClient,
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       addHistory: vi.fn(),
@@ -317,7 +317,7 @@ describe('useGeminiStream', () => {
     // The XaiClient constructor itself is mocked at the module level.
     mockStartChat.mockClear().mockResolvedValue({
       sendMessageStream: mockSendMessageStream,
-    } as unknown as any); // GeminiChat -> any
+    } as unknown as any); // GrokChat -> any
     mockSendMessageStream
       .mockClear()
       .mockReturnValue((async function* () {})());
@@ -334,7 +334,7 @@ describe('useGeminiStream', () => {
 
   const renderTestHook = (
     initialToolCalls: TrackedToolCall[] = [],
-    xaiClient?: any,
+    grokClient?: any,
   ) => {
     let currentToolCalls = initialToolCalls;
     const setToolCalls = (newToolCalls: TrackedToolCall[]) => {
@@ -348,7 +348,7 @@ describe('useGeminiStream', () => {
       mockMarkToolsAsSubmitted,
     ]);
 
-    const client = xaiClient || mockConfig.getXaiClient();
+    const client = grokClient || mockConfig.getGrokClient();
 
     const { result, rerender } = renderHook(
       (props: {
@@ -504,7 +504,7 @@ describe('useGeminiStream', () => {
     ]);
     const { rerender } = renderHook(() =>
       useGeminiStream(
-        new MockedXaiClientClass(mockConfig),
+        new MockedGrokClientClass(mockConfig),
         [],
         mockAddItem,
         mockSetShowHelp,
@@ -559,7 +559,7 @@ describe('useGeminiStream', () => {
         responseSubmittedToGemini: false,
       } as TrackedCancelledToolCall,
     ];
-    const client = new MockedXaiClientClass(mockConfig);
+    const client = new MockedGrokClientClass(mockConfig);
 
     // 1. First render: no tool calls.
     mockUseReactToolScheduler.mockReturnValue([
@@ -938,7 +938,7 @@ describe('useGeminiStream', () => {
 
       const { result, rerender } = renderHook(() =>
         useGeminiStream(
-          new MockedXaiClientClass(mockConfig),
+          new MockedGrokClientClass(mockConfig),
           [],
           mockAddItem,
           mockSetShowHelp,

@@ -53,7 +53,7 @@ describe('loadCliConfig', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(os.homedir).mockReturnValue('/mock/home/user');
-    process.env.GEMINI_API_KEY = 'test-api-key'; // Ensure API key is set for tests
+    process.env.XAI_API_KEY = 'test-api-key'; // Ensure API key is set for tests
   });
 
   afterEach(() => {

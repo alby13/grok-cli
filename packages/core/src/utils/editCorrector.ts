@@ -10,7 +10,7 @@ import {
   SchemaUnion,
   Type,
 } from '@google/genai';
-import { XaiClient } from '../core/client.js';
+import { GrokClient } from '../core/client.js';
 import { EditToolParams } from '../tools/edit.js';
 import { LruCache } from './LruCache.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';

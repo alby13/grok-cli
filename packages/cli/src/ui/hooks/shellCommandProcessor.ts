@@ -8,7 +8,7 @@ import { spawn } from 'child_process';
 import { StringDecoder } from 'string_decoder';
 import type { HistoryItemWithoutId } from '../types.js';
 import { useCallback } from 'react';
-import { Config, XaiClient } from '@google/gemini-cli-core';
+import { Config, GrokClient } from '@google/gemini-cli-core';
 import { type PartListUnion } from '@google/genai';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import { isBinary } from '../utils/textUtils.js';
@@ -172,8 +172,8 @@ function executeShellCommand(
   });
 }
 
-function addShellCommandToGeminiHistory(
-  xaiClient: XaiClient,
+function addShellCommandToGrokHistory(
+  grokClient: GrokClient,
   rawQuery: string,
   resultText: string,
 ) {
@@ -182,7 +182,7 @@ function addShellCommandToGeminiHistory(
       ? resultText.substring(0, MAX_OUTPUT_LENGTH) + '\n... (truncated)'
       : resultText;
 
-  xaiClient.addHistory({
+  grokClient.addHistory({
     role: 'user',
     parts: [
       {
@@ -309,7 +309,7 @@ export const useShellCommandProcessor = (
             );
 
             // Add the same complete, contextual result to the LLM's history.
-            addShellCommandToGeminiHistory(xaiClient, rawQuery, finalOutput);
+            addShellCommandToGrokHistory(grokClient, rawQuery, finalOutput); // Renamed function
           })
           .catch((err) => {
             setPendingHistoryItem(null);

@@ -8,12 +8,12 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useInput } from 'ink';
 import {
   Config,
-  XaiClient,
-  GeminiEventType as ServerGeminiEventType,
-  ServerGeminiStreamEvent as GeminiEvent,
-  ServerGeminiContentEvent as ContentEvent,
-  ServerGeminiErrorEvent as ErrorEvent,
-  ServerGeminiChatCompressedEvent,
+  GrokClient,
+  GrokEventType as ServerGrokEventType,
+  ServerGrokStreamEvent as GrokEvent,
+  ServerGrokContentEvent as ContentEvent,
+  ServerGrokErrorEvent as ErrorEvent,
+  ServerGrokChatCompressedEvent,
   getErrorMessage,
   isNodeError,
   MessageSenderType,
@@ -76,7 +76,7 @@ enum StreamProcessingStatus {
  * API interaction, and tool call lifecycle.
  */
 export const useGeminiStream = (
-  xaiClient: XaiClient,
+  grokClient: GrokClient,
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
   setShowHelp: React.Dispatch<React.SetStateAction<boolean>>,
@@ -410,7 +410,7 @@ export const useGeminiStream = (
   );
 
   const handleChatCompressionEvent = useCallback(
-    (eventValue: ServerGeminiChatCompressedEvent['value']) =>
+    (eventValue: ServerGrokChatCompressedEvent['value']) =>
       addItem(
         {
           type: 'info',
@@ -425,13 +425,13 @@ export const useGeminiStream = (
     [addItem, config],
   );
 
-  const processGeminiStreamEvents = useCallback(
+  const processGrokStreamEvents = useCallback(
     async (
       stream: AsyncIterable<GeminiEvent>,
       userMessageTimestamp: number,
       signal: AbortSignal,
     ): Promise<StreamProcessingStatus> => {
-      let geminiMessageBuffer = '';
+      let grokMessageBuffer = ''; // Renamed
       const toolCallRequests: ToolCallRequestInfo[] = [];
       for await (const event of stream) {
         switch (event.type) {
@@ -439,9 +439,9 @@ export const useGeminiStream = (
             setThought(event.value);
             break;
           case ServerGeminiEventType.Content:
-            geminiMessageBuffer = handleContentEvent(
+            grokMessageBuffer = handleContentEvent( // Renamed
               event.value,
-              geminiMessageBuffer,
+              grokMessageBuffer, // Renamed
               userMessageTimestamp,
             );
             break;

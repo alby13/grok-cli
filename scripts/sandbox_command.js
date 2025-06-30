@@ -32,27 +32,27 @@ const argv = yargs(hideBin(process.argv)).option('q', {
   default: false,
 }).argv;
 
-let geminiSandbox = process.env.GEMINI_SANDBOX;
+let grokSandbox = process.env.GROK_SANDBOX;
 
-if (!geminiSandbox) {
-  const userSettingsFile = join(os.homedir(), '.gemini', 'settings.json');
+if (!grokSandbox) {
+  const userSettingsFile = join(os.homedir(), '.grok', 'settings.json');
   if (existsSync(userSettingsFile)) {
     const settings = JSON.parse(
       stripJsonComments(readFileSync(userSettingsFile, 'utf-8')),
     );
     if (settings.sandbox) {
-      geminiSandbox = settings.sandbox;
+      grokSandbox = settings.sandbox;
     }
   }
 }
 
-if (!geminiSandbox) {
+if (!grokSandbox) {
   let currentDir = process.cwd();
   while (currentDir !== '/') {
-    const geminiEnv = join(currentDir, '.gemini', '.env');
+    const grokEnv = join(currentDir, '.grok', '.env');
     const regularEnv = join(currentDir, '.env');
-    if (existsSync(geminiEnv)) {
-      dotenv.config({ path: geminiEnv });
+    if (existsSync(grokEnv)) {
+      dotenv.config({ path: grokEnv });
       break;
     } else if (existsSync(regularEnv)) {
       dotenv.config({ path: regularEnv });
@@ -60,10 +60,10 @@ if (!geminiSandbox) {
     }
     currentDir = dirname(currentDir);
   }
-  geminiSandbox = process.env.GEMINI_SANDBOX;
+  grokSandbox = process.env.GROK_SANDBOX;
 }
 
-geminiSandbox = (geminiSandbox || '').toLowerCase();
+grokSandbox = (grokSandbox || '').toLowerCase();
 
 const commandExists = (cmd) => {
   const checkCommand = os.platform() === 'win32' ? 'where' : 'command -v';

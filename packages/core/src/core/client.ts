@@ -5,20 +5,32 @@
  */
 
 import {
-  EmbedContentParameters,
-  GenerateContentConfig,
-  Part,
-  SchemaUnion,
-  PartListUnion,
-  Content,
-  Tool,
-  GenerateContentResponse,
-} from '@google/genai';
+  // EmbedContentParameters, // To be replaced by OpenAI/Grok SDK types
+  // GenerateContentConfig, // To be replaced by OpenAI/Grok SDK types
+  // Part, // To be replaced by OpenAI/Grok SDK types
+  // SchemaUnion, // To be replaced by OpenAI/Grok SDK types
+  // PartListUnion, // To be replaced by OpenAI/Grok SDK types
+  // Content, // To be replaced by OpenAI/Grok SDK types
+  // Tool, // To be replaced by OpenAI/Grok SDK types
+  // GenerateContentResponse, // To be replaced by OpenAI/Grok SDK types
+} from '@google/genai'; // This import will likely be removed or replaced entirely
+
+// Placeholder types, to be replaced by actual OpenAI/Grok SDK types
+type EmbedContentParameters = any;
+type GenerateContentConfig = any;
+type Part = any;
+type SchemaUnion = any;
+type PartListUnion = any;
+type Content = any;
+type Tool = any;
+type GenerateContentResponse = any;
+type GenerateContentResponseUsageMetadata = any; // Added this placeholder based on usage
+
 import { getFolderStructure } from '../utils/getFolderStructure.js';
 import {
   Turn,
-  ServerGeminiStreamEvent,
-  GeminiEventType,
+  ServerGrokStreamEvent, // Already updated
+  GrokEventType, // Already updated
   ChatCompressionInfo,
 } from './turn.js';
 import { Config } from '../config/config.js';
@@ -27,7 +39,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
-import { GeminiChat } from './geminiChat.js';
+import { GrokChat } from './grokChat.js';
 import { retryWithBackoff } from '../utils/retry.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { tokenLimit } from './tokenLimits.js';
@@ -37,54 +49,80 @@ import {
   createContentGenerator,
 } from './contentGenerator.js';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
-import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import { DEFAULT_GROK_FLASH_MODEL } from '../config/models.js'; // Changed
 import { AuthType } from './contentGenerator.js';
 
 function isThinkingSupported(model: string) {
-  if (model.startsWith('gemini-2.5')) return true;
+  // TODO: Update this if Grok has a similar concept or remove if not applicable
+  if (model.startsWith('grok-')) return false; // Placeholder, assume no for now
   return false;
 }
 
-export class XaiClient {
-  private chat?: GeminiChat;
-  private contentGenerator?: ContentGenerator;
+export class GrokClient {
+  private chat?: GrokChat;
+  // private contentGenerator?: ContentGenerator; // This will be replaced by the OpenAI client
+  private openAIClient: any; // Placeholder for OpenAI client instance, no longer optional
   private model: string;
   private embeddingModel: string;
-  private generateContentConfig: GenerateContentConfig = {
+  private generateContentConfig: GenerateContentConfig = { // This will likely change based on OpenAI SDK
     temperature: 0,
-    topP: 1,
+    // topP might be different or not used by OpenAI, adjust accordingly
   };
-  private readonly MAX_TURNS = 100;
+  private readonly MAX_TURNS = 100; // This might be relevant for history management
 
   constructor(private config: Config) {
     if (config.getProxy()) {
       setGlobalDispatcher(new ProxyAgent(config.getProxy() as string));
     }
 
-    this.model = config.getModel();
-    this.embeddingModel = config.getEmbeddingModel();
+    this.model = config.getModel(); // This should be a Grok model name
+    this.embeddingModel = config.getEmbeddingModel(); // This should be a Grok embedding model
+
+    // Initialize OpenAI client
+    // Assuming 'openai' package is installed, or a compatible one
+    // import OpenAI from 'openai'; // This import would be at the top of the file
+    // For now, as a placeholder:
+    const apiKey = process.env.XAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('XAI_API_KEY environment variable is not set.');
+    }
+    this.openAIClient = { // Placeholder for actual new OpenAI(...)
+      apiKey: apiKey,
+      baseURL: "https://api.x.ai/v1",
+      chat: {
+        completions: {
+          create: vi.fn(), // Mocked for now, will be replaced by actual SDK call
+        }
+      },
+      embeddings: {
+        create: vi.fn(), // Mocked for now
+      }
+      // Add other necessary parts of the OpenAI client structure
+    };
+    // console.log("GrokClient initialized with placeholder OpenAI client");
+
+    // Chat initialization might move or change based on OpenAI SDK
+    // For now, let's assume GrokChat will be initialized differently or later.
+    // this.chat = new GrokChat(this.config, this.openAIClient, this.generateContentConfig); // GrokChat will need to be adapted
   }
 
-  async initialize(contentGeneratorConfig: ContentGeneratorConfig) {
-    this.contentGenerator = await createContentGenerator(
-      contentGeneratorConfig,
-    );
+  async initialize() { // Simplified initialize, chat might be created on first use
     this.chat = await this.startChat();
   }
 
-  getContentGenerator(): ContentGenerator {
-    if (!this.contentGenerator) {
-      throw new Error('Content generator not initialized');
-    }
-    return this.contentGenerator;
-  }
+  // This method might be deprecated or changed significantly
+  // getContentGenerator(): ContentGenerator {
+  //   throw new Error('getContentGenerator is deprecated; use openAIClient directly.');
+  // }
 
   async addHistory(content: Content) {
     this.getChat().addHistory(content);
   }
 
-  getChat(): GeminiChat {
+  getChat(): GrokChat { // This will need to be adapted for OpenAI's chat model
     if (!this.chat) {
+      // Potentially initialize chat here if not done in constructor/initialize
+      // For now, adhering to existing structure:
       throw new Error('Chat not initialized');
     }
     return this.chat;
@@ -99,11 +137,10 @@ export class XaiClient {
   }
 
   async resetChat(): Promise<void> {
-    this.chat = await this.startChat();
-    await this.chat;
+    this.chat = await this.startChat(); // Re-initializes chat
   }
 
-  private async getEnvironment(): Promise<Part[]> {
+  private async getEnvironment(): Promise<Part[]> { // Parts might change for OpenAI
     const cwd = this.config.getWorkingDir();
     const today = new Date().toLocaleDateString(undefined, {
       weekday: 'long',
@@ -116,7 +153,7 @@ export class XaiClient {
       fileService: this.config.getFileService(),
     });
     const context = `
-  This is the Gemini CLI. We are setting up the context for our chat.
+  This is the Grok CLI. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -194,9 +231,9 @@ export class XaiClient {
             },
           }
         : this.generateContentConfig;
-      return new GeminiChat(
+      return new GrokChat(
         this.config,
-        this.getContentGenerator(),
+        this.openAIClient, // Using openAIClient placeholder
         {
           systemInstruction,
           ...generateContentConfigWithThinking,
@@ -207,7 +244,7 @@ export class XaiClient {
     } catch (error) {
       await reportError(
         error,
-        'Error initializing Gemini chat session.',
+        'Error initializing Grok chat session.',
         history,
         'startChat',
       );
@@ -216,19 +253,22 @@ export class XaiClient {
   }
 
   async *sendMessageStream(
-    request: PartListUnion,
+    request: PartListUnion, // This will change to OpenAI message format
     signal: AbortSignal,
     turns: number = this.MAX_TURNS,
   ): AsyncGenerator<ServerGeminiStreamEvent, Turn> {
     if (!turns) {
-      return new Turn(this.getChat());
+      return new Turn(this.getChat()); // GrokChat will need openAIClient
     }
 
-    const compressed = await this.tryCompressChat();
+    const compressed = await this.tryCompressChat(); // This logic might change
     if (compressed) {
-      yield { type: GeminiEventType.ChatCompressed, value: compressed };
+      yield { type: GrokEventType.ChatCompressed, value: compressed };
     }
-    const turn = new Turn(this.getChat());
+    const turn = new Turn(this.getChat()); // GrokChat will need openAIClient
+    // The turn.run() method will need significant changes to use openAIClient
+    // and adapt to its request/response format.
+    // For now, this will break as `this.chat.sendMessageStream` is based on GenAI SDK.
     const resultStream = turn.run(request, signal);
     for await (const event of resultStream) {
       yield event;
@@ -253,7 +293,7 @@ export class XaiClient {
     contents: Content[],
     schema: SchemaUnion,
     abortSignal: AbortSignal,
-    model: string = DEFAULT_GEMINI_FLASH_MODEL,
+    model: string = DEFAULT_GROK_FLASH_MODEL,
     config: GenerateContentConfig = {},
   ): Promise<Record<string, unknown>> {
     try {
@@ -510,7 +550,7 @@ export class XaiClient {
     }
 
     const currentModel = this.model;
-    const fallbackModel = DEFAULT_GEMINI_FLASH_MODEL;
+    const fallbackModel = DEFAULT_GROK_FLASH_MODEL;
 
     // Don't fallback if already using Flash model
     if (currentModel === fallbackModel) {

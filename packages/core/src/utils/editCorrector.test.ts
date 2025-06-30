@@ -16,14 +16,14 @@ let mockStartChat: any;
 let mockSendMessageStream: any;
 
 vi.mock('../core/client.js', () => ({
-  XaiClient: vi.fn().mockImplementation(function (
+  GrokClient: vi.fn().mockImplementation(function (
     this: any,
     _config: Config,
   ) {
-    this.generateJson = (...params: any[]) => mockGenerateJson(...params); // Corrected: use mockGenerateJson
-    this.startChat = (...params: any[]) => mockStartChat(...params); // Corrected: use mockStartChat
+    this.generateJson = (...params: any[]) => mockGenerateJson(...params);
+    this.startChat = (...params: any[]) => mockStartChat(...params);
     this.sendMessageStream = (...params: any[]) =>
-      mockSendMessageStream(...params); // Corrected: use mockSendMessageStream
+      mockSendMessageStream(...params);
     return this;
   }),
 }));
@@ -36,7 +36,7 @@ import {
   unescapeStringForGeminiBug,
   resetEditCorrectorCaches_TEST_ONLY,
 } from './editCorrector.js';
-import { XaiClient } from '../core/client.js';
+import { GrokClient } from '../core/client.js';
 import type { Config } from '../config/config.js';
 import { ToolRegistry } from '../tools/tool-registry.js';
 
@@ -515,7 +515,7 @@ describe('editCorrector', () => {
   });
 
   describe('ensureCorrectFileContent', () => {
-    let mockXaiClientInstance: Mocked<XaiClient>;
+    let mockGrokClientInstance: Mocked<GrokClient>;
     let mockToolRegistry: Mocked<ToolRegistry>;
     let mockConfigInstance: Config;
     const abortSignal = new AbortController().signal;

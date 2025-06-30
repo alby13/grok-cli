@@ -421,7 +421,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     pendingHistoryItems: pendingGeminiHistoryItems,
     thought,
   } = useGeminiStream(
-    config.getXaiClient(),
+    config.getGrokClient(),
     history,
     addItem,
     setShowHelp,
