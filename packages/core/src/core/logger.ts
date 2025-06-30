@@ -1,13 +1,13 @@
 /**
  * @license
- * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
-import { Content } from '@google/genai';
-import { getProjectTempDir } from '../utils/paths.js';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { getProjectTempDir } from '../utils/paths.js'; // Assumes this utility is updated or generic
 
 const LOG_FILE_NAME = 'logs.json';
 const CHECKPOINT_FILE_NAME = 'checkpoint.json';
@@ -25,13 +25,13 @@ export interface LogEntry {
 }
 
 export class Logger {
-  private geminiDir: string | undefined;
+  private logDir: string | undefined; // Renamed from geminiDir
   private logFilePath: string | undefined;
   private checkpointFilePath: string | undefined;
   private sessionId: string | undefined;
-  private messageId = 0; // Instance-specific counter for the next messageId
+  private messageId = 0;
   private initialized = false;
-  private logs: LogEntry[] = []; // In-memory cache, ideally reflects the last known state of the file
+  private logs: LogEntry[] = [];
 
   constructor(sessionId: string) {
     this.sessionId = sessionId;
@@ -87,7 +87,7 @@ export class Logger {
       await fs.rename(this.logFilePath, backupPath);
       console.debug(`Backed up corrupted log file to ${backupPath}`);
     } catch (_backupError) {
-      // If rename fails (e.g. file doesn't exist), no need to log an error here as the primary error (e.g. invalid JSON) is already handled.
+      // If rename fails (e.g. file doesn't exist), no need to log an error here as the primary error is already handled.
     }
   }
 
@@ -96,12 +96,13 @@ export class Logger {
       return;
     }
 
-    this.geminiDir = getProjectTempDir(process.cwd());
-    this.logFilePath = path.join(this.geminiDir, LOG_FILE_NAME);
-    this.checkpointFilePath = path.join(this.geminiDir, CHECKPOINT_FILE_NAME);
+    // The getProjectTempDir function should point to something like `.xai/temp`
+    this.logDir = getProjectTempDir(process.cwd());
+    this.logFilePath = path.join(this.logDir, LOG_FILE_NAME);
+    this.checkpointFilePath = path.join(this.logDir, CHECKPOINT_FILE_NAME);
 
     try {
-      await fs.mkdir(this.geminiDir, { recursive: true });
+      await fs.mkdir(this.logDir, { recursive: true });
       let fileExisted = true;
       try {
         await fs.access(this.logFilePath);
@@ -145,7 +146,6 @@ export class Logger {
       throw readError;
     }
 
-    // Determine the correct messageId for the new entry based on current disk state for its session
     const sessionLogsOnDisk = currentLogsOnDisk.filter(
       (e) => e.sessionId === entryToAppend.sessionId,
     );
@@ -154,17 +154,13 @@ export class Logger {
         ? Math.max(...sessionLogsOnDisk.map((e) => e.messageId)) + 1
         : 0;
 
-    // Update the messageId of the entry we are about to append
     entryToAppend.messageId = nextMessageIdForSession;
 
-    // Check if this entry (same session, same *recalculated* messageId, same content) might already exist
-    // This is a stricter check for true duplicates if multiple instances try to log the exact same thing
-    // at the exact same calculated messageId slot.
     const entryExists = currentLogsOnDisk.some(
       (e) =>
         e.sessionId === entryToAppend.sessionId &&
         e.messageId === entryToAppend.messageId &&
-        e.timestamp === entryToAppend.timestamp && // Timestamps are good for distinguishing
+        e.timestamp === entryToAppend.timestamp &&
         e.message === entryToAppend.message,
     );
 
@@ -172,8 +168,8 @@ export class Logger {
       console.debug(
         `Duplicate log entry detected and skipped: session ${entryToAppend.sessionId}, messageId ${entryToAppend.messageId}`,
       );
-      this.logs = currentLogsOnDisk; // Ensure in-memory is synced with disk
-      return null; // Indicate that no new entry was actually added
+      this.logs = currentLogsOnDisk;
+      return null;
     }
 
     currentLogsOnDisk.push(entryToAppend);
@@ -185,7 +181,7 @@ export class Logger {
         'utf-8',
       );
       this.logs = currentLogsOnDisk;
-      return entryToAppend; // Return the successfully appended entry
+      return entryToAppend;
     } catch (error) {
       console.debug('Error writing to log file:', error);
       throw error;
@@ -196,11 +192,7 @@ export class Logger {
     if (!this.initialized) return [];
     return this.logs
       .filter((entry) => entry.type === MessageSenderType.USER)
-      .sort((a, b) => {
-        const dateA = new Date(a.timestamp).getTime();
-        const dateB = new Date(b.timestamp).getTime();
-        return dateB - dateA;
-      })
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .map((entry) => entry.message);
   }
 
@@ -212,11 +204,9 @@ export class Logger {
       return;
     }
 
-    // The messageId used here is the instance's idea of the next ID.
-    // _updateLogFile will verify and potentially recalculate based on the file's actual state.
     const newEntryObject: LogEntry = {
       sessionId: this.sessionId,
-      messageId: this.messageId, // This will be recalculated in _updateLogFile
+      messageId: this.messageId,
       type,
       message,
       timestamp: new Date().toISOString(),
@@ -225,29 +215,35 @@ export class Logger {
     try {
       const writtenEntry = await this._updateLogFile(newEntryObject);
       if (writtenEntry) {
-        // If an entry was actually written (not a duplicate skip),
-        // then this instance can increment its idea of the next messageId for this session.
         this.messageId = writtenEntry.messageId + 1;
       }
     } catch (_error) {
-      // Error already logged by _updateLogFile or _readLogFile
+      // Error already logged by internal methods.
     }
   }
 
   _checkpointPath(tag: string | undefined): string {
-    if (!this.checkpointFilePath || !this.geminiDir) {
+    if (!this.checkpointFilePath || !this.logDir) {
       throw new Error('Checkpoint file path not set.');
     }
     if (!tag) {
       return this.checkpointFilePath;
     }
-    return path.join(this.geminiDir, `checkpoint-${tag}.json`);
+    return path.join(this.logDir, `checkpoint-${tag}.json`);
   }
 
-  async saveCheckpoint(conversation: Content[], tag?: string): Promise<void> {
+  /**
+   * Saves a conversation checkpoint.
+   * @param conversation The conversation history, formatted for the OpenAI API.
+   * @param tag An optional tag for the checkpoint file name.
+   */
+  async saveCheckpoint(
+    conversation: ChatCompletionMessageParam[],
+    tag?: string,
+  ): Promise<void> {
     if (!this.initialized || !this.checkpointFilePath) {
       console.error(
-        'Logger not initialized or checkpoint file path not set. Cannot save a checkpoint.',
+        'Logger not initialized. Cannot save a checkpoint.',
       );
       return;
     }
@@ -259,10 +255,15 @@ export class Logger {
     }
   }
 
-  async loadCheckpoint(tag?: string): Promise<Content[]> {
+  /**
+   * Loads a conversation checkpoint.
+   * @param tag An optional tag for the checkpoint file name.
+   * @returns The conversation history, formatted for the OpenAI API.
+   */
+  async loadCheckpoint(tag?: string): Promise<ChatCompletionMessageParam[]> {
     if (!this.initialized || !this.checkpointFilePath) {
       console.error(
-        'Logger not initialized or checkpoint file path not set. Cannot load checkpoint.',
+        'Logger not initialized. Cannot load checkpoint.',
       );
       return [];
     }
@@ -278,11 +279,10 @@ export class Logger {
         );
         return [];
       }
-      return parsedContent as Content[];
+      return parsedContent as ChatCompletionMessageParam[];
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       if (nodeError.code === 'ENOENT') {
-        // File doesn't exist, which is fine. Return empty array.
         return [];
       }
       console.error(`Failed to read or parse checkpoint file ${path}:`, error);
