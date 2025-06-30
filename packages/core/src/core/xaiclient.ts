@@ -10,19 +10,18 @@ import {
   ChatCompletionTool,
 } from 'openai/resources/chat/completions';
 
-// Assuming these local modules are refactored to be provider-agnostic
-// or compatible with the OpenAI SDK's data structures.
-import { getFolderStructure } from '../utils/getFolderStructure.js';
-import { Turn } from './turn.js'; // Note: The `Turn` class will require significant refactoring.
-import { ServerStreamEvent, EventType, ChatCompressionInfo } from './turn.js'; // Assumes `turn.ts` is updated.
+// Local modules that need to be compatible with the new structure.
+// The `Turn` class is now a critical part of the stream handling.
+import { Turn } from './turn.js';
+import { ServerStreamEvent, EventType, ChatCompressionInfo } from './turn.js';
 import { Config } from '../config/config.js';
 import { getCoreSystemPrompt } from './prompts.js';
+import { getFolderStructure } from '../utils/getFolderStructure.js';
 import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
 import { getErrorMessage } from '../utils/errors.js';
 
-// Define a placeholder for the response type to maintain structural similarity.
 type GenerateContentResponse = OpenAI.Chat.Completions.ChatCompletion;
 
 export class XaiClient {
@@ -31,14 +30,13 @@ export class XaiClient {
   private model: string;
   private embeddingModel: string;
   private generateContentConfig = {
-    temperature: 0.7, // Using a more standard default for creative models
+    temperature: 0.7,
     top_p: 1,
   };
   private readonly MAX_TURNS = 100;
 
   constructor(private config: Config) {
-    // This is the correct implementation for initializing the client for xAI.
-    const apiKey = this.config.getApiKey(); // Assumes config retrieves the XAI API key
+    const apiKey = this.config.getApiKey();
     if (!apiKey) {
       throw new Error('XAI_API_KEY environment variable is not set or configured.');
     }
@@ -47,12 +45,17 @@ export class XaiClient {
       baseURL: 'https://api.x.ai/v1',
     });
 
-    this.model = config.getModel(); // e.g., 'grok-1'
-    this.embeddingModel = config.getEmbeddingModel(); // e.g., an xAI embedding model name
+    this.model = config.getModel();
+    this.embeddingModel = config.getEmbeddingModel();
   }
 
   async initialize(): Promise<void> {
     this.history = await this.createInitialHistory();
+  }
+
+  // This helper is intended to be called by other classes, like Turn.
+  getConfig(): Config {
+    return this.config;
   }
 
   private ensureInitialized(): void {
@@ -139,8 +142,13 @@ ${folderStructure}
     return context;
   }
 
+  /**
+   * Orchestrates a single conversational turn.
+   * This method manages history and high-level flow, while delegating the
+   * actual API stream processing to the `Turn` class.
+   */
   async *sendMessageStream(
-    request: string,
+    requestText: string,
     signal: AbortSignal,
     turns: number = this.MAX_TURNS,
   ): AsyncGenerator<ServerStreamEvent, Turn> {
@@ -155,29 +163,43 @@ ${folderStructure}
       yield { type: EventType.ChatCompressed, value: compressed };
     }
 
-    this.history.push({ role: 'user', content: request });
+    // 1. Add the new user message to the history.
+    this.history.push({ role: 'user', content: requestText });
 
-    // The `Turn` class must be refactored to use this client's `createChatCompletionStream` method.
+    // 2. Create a new Turn object to manage this specific API call.
     const turn = new Turn(this);
-    const resultStream = turn.run(this.history, signal);
 
-    for await (const event of resultStream) {
-      yield event;
-    }
+    try {
+      // 3. Delegate stream processing to turn.run() and yield its events.
+      const resultStream = turn.run(this.history, signal);
+      for await (const event of resultStream) {
+        yield event;
+      }
 
-    // After the stream, the Turn object should contain the full assistant message.
-    const finalMessage = turn.getFinalAssistantMessage();
-    if (finalMessage) {
-      this.history.push(finalMessage);
-    }
+      // 4. After the turn, get the complete assistant message and add it to history.
+      const finalAssistantMessage = turn.getFinalAssistantMessage();
+      if (finalAssistantMessage) {
+        this.history.push(finalAssistantMessage);
+      }
 
-    if (!turn.pendingToolCalls.length && signal && !signal.aborted) {
-      const nextSpeakerCheck = await checkNextSpeaker(this, signal);
-      if (nextSpeakerCheck?.next_speaker === 'model') {
-        yield* this.sendMessageStream('Please continue.', signal, turns - 1);
+      // 5. If the model finished, check if it wants to continue speaking.
+      if (!turn.pendingToolCalls.length && !signal.aborted) {
+        const nextSpeakerCheck = await checkNextSpeaker(this, signal);
+        if (nextSpeakerCheck?.next_speaker === 'model') {
+          // This recursive call continues the conversation.
+          yield* this.sendMessageStream('Please continue.', signal, turns - 1);
+        }
+      }
+    } catch (error) {
+      if (signal.aborted) {
+        console.log('Request aborted by user.');
+      } else {
+        await reportError(error, 'Error during sendMessageStream.');
+        yield { type: EventType.Error, value: { message: getErrorMessage(error) } };
       }
     }
 
+    // 6. Return the completed Turn object, containing the final state.
     return turn;
   }
 
@@ -226,7 +248,7 @@ ${folderStructure}
     try {
       const response = await this.openAIClient.embeddings.create({
         model: this.embeddingModel,
-        input: texts.map(text => text.replace(/\n/g, ' ')), // API may have issues with newlines
+        input: texts.map(text => text.replace(/\n/g, ' ')),
       });
       return response.data.map(item => item.embedding);
     } catch (error) {
@@ -236,7 +258,6 @@ ${folderStructure}
   }
 
   async tryCompressChat(force: boolean = false): Promise<ChatCompressionInfo | null> {
-    // This is a simple heuristic. For precise control, integrate a library like `tiktoken`.
     const originalMessageCount = this.history.length;
     const compressionThreshold = 25;
 
@@ -272,7 +293,9 @@ ${folderStructure}
     }
   }
 
-  // This helper is intended to be called by a refactored `Turn` class.
+  /**
+   * This helper method is called by the `Turn` class to get a stream from the API.
+   */
   async createChatCompletionStream(
     messages: ChatCompletionMessageParam[],
     tools: ChatCompletionTool[] | undefined,
