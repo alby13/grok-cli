@@ -1,145 +1,99 @@
 /**
  * @license
- * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * This file has been refactored to run a non-interactive session using the XaiClient.
+ * It handles a single, continuous task from start to finish via the command line.
  */
 
 import {
   Config,
-  ToolCallRequestInfo,
-  executeToolCall,
   ToolRegistry,
   shutdownTelemetry,
   isTelemetrySdkInitialized,
-} from '@google/gemini-cli-core';
-import {
-  Content,
-  Part,
-  FunctionCall,
-  GenerateContentResponse,
-} from '@google/genai';
-
+  XaiClient,
+  executeSingleToolCall,
+} from '@google/gemini-cli-core'; // This will resolve to your updated core package
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { parseAndFormatApiError } from './ui/utils/errorParsing.js';
 
-function getResponseText(response: GenerateContentResponse): string | null {
-  if (response.candidates && response.candidates.length > 0) {
-    const candidate = response.candidates[0];
-    if (
-      candidate.content &&
-      candidate.content.parts &&
-      candidate.content.parts.length > 0
-    ) {
-      // We are running in headless mode so we don't need to return thoughts to STDOUT.
-      const thoughtPart = candidate.content.parts[0];
-      if (thoughtPart?.thought) {
-        return null;
-      }
-      return candidate.content.parts
-        .filter((part) => part.text)
-        .map((part) => part.text)
-        .join('');
-    }
-  }
-  return null;
-}
-
+/**
+ * Runs a complete task non-interactively, from initial prompt to completion,
+ * including handling any necessary tool calls.
+ * @param config The application configuration.
+ * @param initialPrompt The initial user input that starts the task.
+ */
 export async function runNonInteractive(
   config: Config,
-  input: string,
+  initialPrompt: string,
 ): Promise<void> {
-  // Handle EPIPE errors when the output is piped to a command that closes early.
+  // Handle EPIPE errors when the output is piped to a command that closes early (e.g., `head`).
   process.stdout.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EPIPE') {
-      // Exit gracefully if the pipe is closed.
       process.exit(0);
     }
   });
 
-  const geminiClient = config.getGeminiClient();
+  const client = new XaiClient(config);
   const toolRegistry: ToolRegistry = await config.getToolRegistry();
-
-  const chat = await geminiClient.getChat();
   const abortController = new AbortController();
-  let currentMessages: Content[] = [{ role: 'user', parts: [{ text: input }] }];
+
+  let nextPrompt = initialPrompt;
 
   try {
+    // A continuous loop that represents the conversation.
+    // It only breaks when the model has no more text and no more tools to call.
     while (true) {
-      const functionCalls: FunctionCall[] = [];
+      const stream = client.sendMessageStream(
+        nextPrompt,
+        abortController.signal,
+      );
 
-      const responseStream = await chat.sendMessageStream({
-        message: currentMessages[0]?.parts || [], // Ensure parts are always provided
-        config: {
-          abortSignal: abortController.signal,
-          tools: [
-            { functionDeclarations: toolRegistry.getFunctionDeclarations() },
-          ],
-        },
-      });
-
-      for await (const resp of responseStream) {
-        if (abortController.signal.aborted) {
-          console.error('Operation cancelled.');
-          return;
+      // 1. Process the stream from the model (text output).
+      for await (const event of stream) {
+        if (event.type === 'contentDelta') {
+          process.stdout.write(event.value);
         }
-        const textPart = getResponseText(resp);
-        if (textPart) {
-          process.stdout.write(textPart);
-        }
-        if (resp.functionCalls) {
-          functionCalls.push(...resp.functionCalls);
-        }
+        // Could add more detailed logging for other event types here if needed.
       }
+      
+      const streamResult = await stream.next();
+      const finalTurn = streamResult.value;
 
-      if (functionCalls.length > 0) {
-        const toolResponseParts: Part[] = [];
+      // 2. Check for tool calls.
+      if (finalTurn && finalTurn.pendingToolCalls.length > 0) {
+        process.stdout.write('\n'); // Add a newline after the model's text.
+        console.log(`[Executing ${finalTurn.pendingToolCalls.length} tool(s)...]`);
 
-        for (const fc of functionCalls) {
-          const callId = fc.id ?? `${fc.name}-${Date.now()}`;
-          const requestInfo: ToolCallRequestInfo = {
-            callId,
-            name: fc.name as string,
-            args: (fc.args ?? {}) as Record<string, unknown>,
-            isClientInitiated: false,
-          };
+        const toolMessages: ChatCompletionMessageParam[] = [];
 
-          const toolResponse = await executeToolCall(
+        // 3. Execute each tool call sequentially.
+        for (const toolCall of finalTurn.pendingToolCalls) {
+          const toolMessage = await executeSingleToolCall(
             config,
-            requestInfo,
+            toolCall,
             toolRegistry,
             abortController.signal,
           );
-
-          if (toolResponse.error) {
-            console.error(
-              `Error executing tool ${fc.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
-            );
-            process.exit(1);
-          }
-
-          if (toolResponse.responseParts) {
-            const parts = Array.isArray(toolResponse.responseParts)
-              ? toolResponse.responseParts
-              : [toolResponse.responseParts];
-            for (const part of parts) {
-              if (typeof part === 'string') {
-                toolResponseParts.push({ text: part });
-              } else if (part) {
-                toolResponseParts.push(part);
-              }
-            }
-          }
+          toolMessages.push(toolMessage);
         }
-        currentMessages = [{ role: 'user', parts: toolResponseParts }];
+
+        // 4. Add the results to history and prepare for the next loop iteration.
+        for (const msg of toolMessages) {
+          client.addHistory(msg);
+        }
+        nextPrompt = 'Tool execution finished. Please analyze the results and continue with the original task.';
       } else {
-        process.stdout.write('\n'); // Ensure a final newline
-        return;
+        // 5. If there are no tool calls, the task is complete.
+        process.stdout.write('\n'); // Ensure a final newline.
+        break; // Exit the while loop.
       }
     }
   } catch (error) {
     console.error(
       parseAndFormatApiError(
         error,
-        config.getContentGeneratorConfig().authType,
+        config.getContentGeneratorConfig()?.authType, // This might need updating depending on config refactor
       ),
     );
     process.exit(1);
