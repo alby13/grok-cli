@@ -1,119 +1,54 @@
 /**
  * @license
- * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-import {
-  PartListUnion,
-  GenerateContentResponse,
-  FunctionCall,
-  FunctionDeclaration,
-  GenerateContentResponseUsageMetadata,
-} from '@google/genai';
-import {
-  ToolCallConfirmationDetails,
-  ToolResult,
-  ToolResultDisplay,
-} from '../tools/tools.js';
-import { getResponseText } from '../utils/generateContentResponseUtilities.js';
+import OpenAI from 'openai';
+import { XaiClient } from './XaiClient.js';
 import { reportError } from '../utils/errorReporting.js';
 import { getErrorMessage } from '../utils/errors.js';
-import { GeminiChat } from './geminiChat.js';
-import { UnauthorizedError, toFriendlyError } from '../utils/errors.js';
 
-// Define a structure for tools passed to the server
-export interface ServerTool {
-  name: string;
-  schema: FunctionDeclaration;
-  // The execute method signature might differ slightly or be wrapped
-  execute(
-    params: Record<string, unknown>,
-    signal?: AbortSignal,
-  ): Promise<ToolResult>;
-  shouldConfirmExecute(
-    params: Record<string, unknown>,
-    abortSignal: AbortSignal,
-  ): Promise<ToolCallConfirmationDetails | false>;
-}
-
-export enum GeminiEventType {
-  Content = 'content',
-  ToolCallRequest = 'tool_call_request',
-  ToolCallResponse = 'tool_call_response',
-  ToolCallConfirmation = 'tool_call_confirmation',
-  UserCancelled = 'user_cancelled',
+// Define event types for the OpenAI-compatible stream.
+export enum EventType {
+  ContentDelta = 'contentDelta',
+  ToolCallStart = 'toolCallStart',
+  ToolCallDelta = 'toolCallDelta',
+  ToolCallEnd = 'toolCallEnd',
   Error = 'error',
-  ChatCompressed = 'chat_compressed',
-  UsageMetadata = 'usage_metadata',
-  Thought = 'thought',
+  ChatCompressed = 'chatCompressed',
+  // Note: Usage metadata is not available in the stream, so it's omitted.
 }
 
+// Define the structure of events yielded by the Turn's run method.
 export interface StructuredError {
   message: string;
-  status?: number;
+  status?: number; // Keep for potential HTTP errors
 }
 
-export interface GeminiErrorEventValue {
-  error: StructuredError;
-}
-
-export interface ToolCallRequestInfo {
-  callId: string;
-  name: string;
-  args: Record<string, unknown>;
-  isClientInitiated: boolean;
-}
-
-export interface ToolCallResponseInfo {
-  callId: string;
-  responseParts: PartListUnion;
-  resultDisplay: ToolResultDisplay | undefined;
-  error: Error | undefined;
-}
-
-export interface ServerToolCallConfirmationDetails {
-  request: ToolCallRequestInfo;
-  details: ToolCallConfirmationDetails;
-}
-
-export type ThoughtSummary = {
-  subject: string;
-  description: string;
-};
-
-export type ServerGeminiContentEvent = {
-  type: GeminiEventType.Content;
+export type ContentDeltaEvent = {
+  type: EventType.ContentDelta;
   value: string;
 };
 
-export type ServerGeminiThoughtEvent = {
-  type: GeminiEventType.Thought;
-  value: ThoughtSummary;
+export type ToolCallStartEvent = {
+  type: EventType.ToolCallStart;
+  value: { name: string };
 };
 
-export type ServerGeminiToolCallRequestEvent = {
-  type: GeminiEventType.ToolCallRequest;
-  value: ToolCallRequestInfo;
+export type ToolCallDeltaEvent = {
+  type: EventType.ToolCallDelta;
+  value: { name: string; argsChunk: string };
 };
 
-export type ServerGeminiToolCallResponseEvent = {
-  type: GeminiEventType.ToolCallResponse;
-  value: ToolCallResponseInfo;
+export type ToolCallEndEvent = {
+  type: EventType.ToolCallEnd;
+  value: { name: string };
 };
 
-export type ServerGeminiToolCallConfirmationEvent = {
-  type: GeminiEventType.ToolCallConfirmation;
-  value: ServerToolCallConfirmationDetails;
-};
-
-export type ServerGeminiUserCancelledEvent = {
-  type: GeminiEventType.UserCancelled;
-};
-
-export type ServerGeminiErrorEvent = {
-  type: GeminiEventType.Error;
-  value: GeminiErrorEventValue;
+export type ErrorEvent = {
+  type: EventType.Error;
+  value: { error: StructuredError };
 };
 
 export interface ChatCompressionInfo {
@@ -121,170 +56,159 @@ export interface ChatCompressionInfo {
   newTokenCount: number;
 }
 
-export type ServerGeminiChatCompressedEvent = {
-  type: GeminiEventType.ChatCompressed;
+export type ChatCompressedEvent = {
+  type: EventType.ChatCompressed;
   value: ChatCompressionInfo | null;
 };
 
-export type ServerGeminiUsageMetadataEvent = {
-  type: GeminiEventType.UsageMetadata;
-  value: GenerateContentResponseUsageMetadata & { apiTimeMs?: number };
-};
+// The union type for all possible stream events.
+export type ServerStreamEvent =
+  | ContentDeltaEvent
+  | ToolCallStartEvent
+  | ToolCallDeltaEvent
+  | ToolCallEndEvent
+  | ErrorEvent
+  | ChatCompressedEvent;
 
-// The original union type, now composed of the individual types
-export type ServerGeminiStreamEvent =
-  | ServerGeminiContentEvent
-  | ServerGeminiToolCallRequestEvent
-  | ServerGeminiToolCallResponseEvent
-  | ServerGeminiToolCallConfirmationEvent
-  | ServerGeminiUserCancelledEvent
-  | ServerGeminiErrorEvent
-  | ServerGeminiChatCompressedEvent
-  | ServerGeminiUsageMetadataEvent
-  | ServerGeminiThoughtEvent;
-
-// A turn manages the agentic loop turn within the server context.
+/**
+ * A Turn manages a single agentic loop turn (a single API call and its response).
+ * It processes the stream from an OpenAI-compatible API and yields structured events.
+ */
 export class Turn {
-  readonly pendingToolCalls: ToolCallRequestInfo[];
-  private debugResponses: GenerateContentResponse[];
-  private lastUsageMetadata: GenerateContentResponseUsageMetadata | null = null;
+  public pendingToolCalls: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] = [];
+  private finalAssistantMessage: OpenAI.Chat.Completions.ChatCompletionMessageParam | null = null;
 
-  constructor(private readonly chat: GeminiChat) {
-    this.pendingToolCalls = [];
-    this.debugResponses = [];
+  constructor(private readonly client: XaiClient) {}
+
+  /**
+   * Retrieves the fully assembled assistant message after the stream is complete.
+   * This is used by the client to update its history.
+   */
+  getFinalAssistantMessage(): OpenAI.Chat.Completions.ChatCompletionMessageParam | null {
+    return this.finalAssistantMessage;
   }
-  // The run method yields simpler events suitable for server logic
-  async *run(
-    req: PartListUnion,
-    signal: AbortSignal,
-  ): AsyncGenerator<ServerGeminiStreamEvent> {
-    const startTime = Date.now();
-    try {
-      const responseStream = await this.chat.sendMessageStream({
-        message: req,
-        config: {
-          abortSignal: signal,
-        },
-      });
 
-      for await (const resp of responseStream) {
-        if (signal?.aborted) {
-          yield { type: GeminiEventType.UserCancelled };
-          // Do not add resp to debugResponses if aborted before processing
+  /**
+   * Runs the agentic turn.
+   * @param history The full conversation history to be sent to the API.
+   * @param signal An AbortSignal to cancel the request.
+   * @yields {ServerStreamEvent} Events representing the API response.
+   */
+  async *run(
+    history: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+    signal: AbortSignal,
+  ): AsyncGenerator<ServerStreamEvent> {
+    try {
+      const toolRegistry = await this.client.getConfig().getToolRegistry();
+      // Assumes a method to get tools in OpenAI format exists.
+      const tools = toolRegistry.getOpenAIToolDeclarations();
+
+      const stream = await this.client.createChatCompletionStream(
+        history,
+        tools,
+        signal,
+      );
+
+      let fullResponseText = '';
+      // Buffer for assembling tool calls as they stream in.
+      const toolCallBuffers: {
+        [index: number]: {
+          id: string;
+          function: { name: string; arguments: string };
+        };
+      } = {};
+
+      for await (const chunk of stream) {
+        if (signal.aborted) {
+          // The stream will be cancelled by the SDK, but we stop processing.
           return;
         }
-        this.debugResponses.push(resp);
 
-        const thoughtPart = resp.candidates?.[0]?.content?.parts?.[0];
-        if (thoughtPart?.thought) {
-          // Thought always has a bold "subject" part enclosed in double asterisks
-          // (e.g., **Subject**). The rest of the string is considered the description.
-          const rawText = thoughtPart.text ?? '';
-          const subjectStringMatches = rawText.match(/\*\*(.*?)\*\*/s);
-          const subject = subjectStringMatches
-            ? subjectStringMatches[1].trim()
-            : '';
-          const description = rawText.replace(/\*\*(.*?)\*\*/s, '').trim();
-          const thought: ThoughtSummary = {
-            subject,
-            description,
-          };
+        const delta = chunk.choices[0]?.delta;
+        if (!delta) continue;
 
-          yield {
-            type: GeminiEventType.Thought,
-            value: thought,
-          };
-          continue;
+        // Handle text content chunks
+        if (delta.content) {
+          fullResponseText += delta.content;
+          yield { type: EventType.ContentDelta, value: delta.content };
         }
 
-        const text = getResponseText(resp);
-        if (text) {
-          yield { type: GeminiEventType.Content, value: text };
-        }
+        // Handle tool call chunks
+        if (delta.tool_calls) {
+          for (const toolCallChunk of delta.tool_calls) {
+            const index = toolCallChunk.index;
 
-        // Handle function calls (requesting tool execution)
-        const functionCalls = resp.functionCalls ?? [];
-        for (const fnCall of functionCalls) {
-          const event = this.handlePendingFunctionCall(fnCall);
-          if (event) {
-            yield event;
+            // A new tool call is starting.
+            if (toolCallChunk.id) {
+              toolCallBuffers[index] = {
+                id: toolCallChunk.id,
+                function: { name: '', arguments: '' },
+              };
+            }
+
+            const buffer = toolCallBuffers[index];
+            if (!buffer) continue;
+
+            if (toolCallChunk.function?.name) {
+              buffer.function.name += toolCallChunk.function.name;
+              // Yield a start event only when we have the name.
+              if (toolCallChunk.function.name.length > 0) {
+                 yield { type: EventType.ToolCallStart, value: { name: buffer.function.name }};
+              }
+            }
+
+            if (toolCallChunk.function?.arguments) {
+              buffer.function.arguments += toolCallChunk.function.arguments;
+              yield { type: EventType.ToolCallDelta, value: { name: buffer.function.name, argsChunk: toolCallChunk.function.arguments }};
+            }
           }
         }
+      }
 
-        if (resp.usageMetadata) {
-          this.lastUsageMetadata =
-            resp.usageMetadata as GenerateContentResponseUsageMetadata;
+      // Finalize and store the completed tool calls
+      const completedToolCalls = Object.values(toolCallBuffers).map(
+        (buffer) =>
+          ({
+            id: buffer.id,
+            type: 'function',
+            function: {
+              name: buffer.function.name,
+              arguments: buffer.function.arguments,
+            },
+          } as OpenAI.Chat.Completions.ChatCompletionMessageToolCall),
+      );
+
+      if (completedToolCalls.length > 0) {
+        this.pendingToolCalls = completedToolCalls;
+        for (const toolCall of completedToolCalls) {
+            yield { type: EventType.ToolCallEnd, value: { name: toolCall.function.name }};
         }
       }
 
-      if (this.lastUsageMetadata) {
-        const durationMs = Date.now() - startTime;
-        yield {
-          type: GeminiEventType.UsageMetadata,
-          value: { ...this.lastUsageMetadata, apiTimeMs: durationMs },
-        };
-      }
-    } catch (e) {
-      const error = toFriendlyError(e);
-      if (error instanceof UnauthorizedError) {
-        throw error;
-      }
-      if (signal.aborted) {
-        yield { type: GeminiEventType.UserCancelled };
-        // Regular cancellation error, fail gracefully.
-        return;
-      }
+      // Assemble the final message for the history log.
+      this.finalAssistantMessage = {
+        role: 'assistant',
+        content: fullResponseText || null, // content is null if only tool calls are made
+        tool_calls: this.pendingToolCalls.length > 0 ? this.pendingToolCalls : undefined,
+      };
 
-      const contextForReport = [...this.chat.getHistory(/*curated*/ true), req];
+    } catch (e) {
+      if (signal.aborted) return; // Fail gracefully on user cancellation.
+
+      const error = e as Error;
       await reportError(
         error,
-        'Error when talking to Gemini API',
-        contextForReport,
-        'Turn.run-sendMessageStream',
+        'Error when talking to xAI API',
+        history,
+        'Turn.run',
       );
-      const status =
-        typeof error === 'object' &&
-        error !== null &&
-        'status' in error &&
-        typeof (error as { status: unknown }).status === 'number'
-          ? (error as { status: number }).status
-          : undefined;
+
       const structuredError: StructuredError = {
         message: getErrorMessage(error),
-        status,
       };
-      yield { type: GeminiEventType.Error, value: { error: structuredError } };
+
+      yield { type: EventType.Error, value: { error: structuredError } };
       return;
     }
-  }
-
-  private handlePendingFunctionCall(
-    fnCall: FunctionCall,
-  ): ServerGeminiStreamEvent | null {
-    const callId =
-      fnCall.id ??
-      `${fnCall.name}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const name = fnCall.name || 'undefined_tool_name';
-    const args = (fnCall.args || {}) as Record<string, unknown>;
-
-    const toolCallRequest: ToolCallRequestInfo = {
-      callId,
-      name,
-      args,
-      isClientInitiated: false,
-    };
-
-    this.pendingToolCalls.push(toolCallRequest);
-
-    // Yield a request for the tool call, not the pending/confirming status
-    return { type: GeminiEventType.ToolCallRequest, value: toolCallRequest };
-  }
-
-  getDebugResponses(): GenerateContentResponse[] {
-    return this.debugResponses;
-  }
-
-  getUsageMetadata(): GenerateContentResponseUsageMetadata | null {
-    return this.lastUsageMetadata;
   }
 }
