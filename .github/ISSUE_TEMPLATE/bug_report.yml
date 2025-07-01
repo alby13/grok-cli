@@ -1,11 +1,11 @@
 name: Bug Report
-description: Report a bug to help us improve Gemini CLI
+description: Report a bug to help us improve Grok CLI # Renamed
 labels: ['kind/bug', 'status/need-triage']
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Please search [existing issues](https://github.com/google-gemini/gemini-cli/issues) to see if an issue already exists for the bug you encountered.
+        Thanks for taking the time to fill out this bug report! Please search [existing issues](https://github.com/xai-org/grok-cli/issues) to see if an issue already exists for the bug you encountered. # Renamed URL
 
   - type: textarea
     id: problem
@@ -26,12 +26,12 @@ body:
     id: info
     attributes:
       label: Client information
-      description: Please paste the full text from the `/about` command run from Gemini CLI. Also include which platform (MacOS, Windows, Linux).
+      description: Please paste the full text from the `/about` command run from Grok CLI. Also include which platform (MacOS, Windows, Linux). # Renamed
       value: |
         <details>
 
         ```console
-        $ gemini /about
+        $ grok /about
         # paste output here
         ```
 
@@ -43,7 +43,9 @@ body:
     id: login-info
     attributes:
       label: Login information
-      description: Describe how you are logging in (e.g., Google Account, API key).
+      description: Describe how you are logging in (e.g., xAI Account, API key). # Updated example
+    validations:
+      required: false # Making optional as API key is primary for Grok
 
   - type: textarea
     id: additional-context

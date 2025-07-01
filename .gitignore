@@ -2,9 +2,9 @@
 .env
 .env~
 
-# gemini-cli settings
-.gemini/
-!gemini/config.yaml
+# grok-cli settings # Renamed
+.grok/ # Renamed
+!.grok/config.yaml # Renamed
 
 # Dependency directory
 node_modules

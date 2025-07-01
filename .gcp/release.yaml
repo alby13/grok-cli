@@ -1,12 +1,12 @@
 steps:
   # Step 1: Install root dependencies (includes workspaces)
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Install Dependencies'
     entrypoint: 'npm'
     args: ['install']
 
   # Step 2: Update version in root package.json
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Set version in workspace root'
     entrypoint: 'bash'
     args:
@@ -22,50 +22,50 @@ steps:
         echo "Set root package.json version to: ${new_version}"
 
   # Step 3: Binds the package versions to the version in the repo root's package.json
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Bind package versions to workspace root'
     entrypoint: 'npm'
     args: ['run', 'prerelease:dev'] # This will run prerelease:version and prerelease:deps
 
   # Step 4: Authenticate for Docker (so we can push images to the artifact registry)
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Authenticate docker'
     entrypoint: 'npm'
     args: ['run', 'auth']
 
   # Step 5: Build workspace packages
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Build packages'
     entrypoint: 'npm'
     args: ['run', 'build:packages']
 
   # Step 6: Prepare CLI package.json for publishing
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
-    id: 'Prepare @google/gemini-cli and @google/gemini-cli-core packages'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
+    id: 'Prepare @xai/grok-cli and @xai/grok-cli-core packages' # Renamed
     entrypoint: 'npm'
     args: ['run', 'prepare:packages']
     env:
-      - 'GEMINI_SANDBOX=$_CONTAINER_TOOL'
+      - 'GROK_SANDBOX=$_CONTAINER_TOOL' # Renamed
       - 'SANDBOX_IMAGE_REGISTRY=$_SANDBOX_IMAGE_REGISTRY'
       - 'SANDBOX_IMAGE_NAME=$_SANDBOX_IMAGE_NAME'
 
   # Step 7: Build sandbox container image
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Build sandbox Docker image'
     entrypoint: 'npm'
     args: ['run', 'build:sandbox:fast']
     env:
-      - 'GEMINI_SANDBOX=$_CONTAINER_TOOL'
+      - 'GROK_SANDBOX=$_CONTAINER_TOOL' # Renamed
       - 'SANDBOX_IMAGE_REGISTRY=$_SANDBOX_IMAGE_REGISTRY'
       - 'SANDBOX_IMAGE_NAME=$_SANDBOX_IMAGE_NAME'
 
   # Step 8: Publish sandbox container image
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
     id: 'Publish sandbox Docker image'
     entrypoint: 'npm'
     args: ['run', 'publish:sandbox']
     env:
-      - 'GEMINI_SANDBOX=$_CONTAINER_TOOL'
+      - 'GROK_SANDBOX=$_CONTAINER_TOOL' # Renamed
       - 'SANDBOX_IMAGE_REGISTRY=$_SANDBOX_IMAGE_REGISTRY'
       - 'SANDBOX_IMAGE_NAME=$_SANDBOX_IMAGE_NAME'
 
@@ -73,8 +73,8 @@ steps:
   # NOTE: when running locally, run this instead (from the `packages/core` directory):
   #   - `npm login --registry https://wombat-dressing-room.appspot.com`
   #   - use a 24hr token
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
-    id: 'Setup @google/gemini-cli-core auth token for publishing'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
+    id: 'Setup @xai/grok-cli-core auth token for publishing' # Renamed
     entrypoint: 'bash'
     args:
       - -c
@@ -82,20 +82,20 @@ steps:
         echo "//wombat-dressing-room.appspot.com/:_authToken=$$CORE_PACKAGE_PUBLISH_TOKEN" > $$HOME/.npmrc
     secretEnv: ['CORE_PACKAGE_PUBLISH_TOKEN']
 
-  # Step 9: Publish @google/gemini-cli-core to NPM
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
-    id: 'Publish @google/gemini-cli-core package'
+  # Step 9: Publish @xai/grok-cli-core to NPM # Renamed
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
+    id: 'Publish @xai/grok-cli-core package' # Renamed
     entrypoint: 'bash'
     args:
       - -c
       - |
         if [ "$_OFFICIAL_RELEASE" = "true" ]; then
-          npm publish --workspace=@google/gemini-cli-core --tag=latest
+          npm publish --workspace=@xai/grok-cli-core --tag=latest # Renamed
         else
-          npm publish --workspace=@google/gemini-cli-core --tag=rc
+          npm publish --workspace=@xai/grok-cli-core --tag=rc # Renamed
         fi
     env:
-      - 'GEMINI_SANDBOX=$_CONTAINER_TOOL'
+      - 'GROK_SANDBOX=$_CONTAINER_TOOL' # Renamed
       - 'SANDBOX_IMAGE_REGISTRY=$_SANDBOX_IMAGE_REGISTRY'
       - 'SANDBOX_IMAGE_NAME=$_SANDBOX_IMAGE_NAME'
 
@@ -103,8 +103,8 @@ steps:
   # NOTE: when running locally, run this instead (from the `packages/cli` directory)
   #   - `npm login --registry https://wombat-dressing-room.appspot.com`
   #   - use a 24hr token
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
-    id: 'Setup @google/gemini-cli auth token for publishing'
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
+    id: 'Setup @xai/grok-cli auth token for publishing' # Renamed
     entrypoint: 'bash'
     args:
       - -c
@@ -112,20 +112,20 @@ steps:
         echo "//wombat-dressing-room.appspot.com/:_authToken=$$CLI_PACKAGE_PUBLISH_TOKEN" > $$HOME/.npmrc
     secretEnv: ['CLI_PACKAGE_PUBLISH_TOKEN']
 
-  # Step 10: Publish @google/gemini-cli to NPM
-  - name: 'us-west1-docker.pkg.dev/gemini-code-dev/gemini-code-containers/gemini-code-builder'
-    id: 'Publish @google/gemini-cli package'
+  # Step 10: Publish @xai/grok-cli to NPM # Renamed
+  - name: 'us-west1-docker.pkg.dev/xai-org/grok-code-containers/grok-code-builder' # Renamed
+    id: 'Publish @xai/grok-cli package' # Renamed
     entrypoint: 'bash'
     args:
       - -c
       - |
         if [ "$_OFFICIAL_RELEASE" = "true" ]; then
-          npm publish --workspace=@google/gemini-cli --tag=latest
+          npm publish --workspace=@xai/grok-cli --tag=latest # Renamed
         else
-          npm publish --workspace=@google/gemini-cli --tag=rc
+          npm publish --workspace=@xai/grok-cli --tag=rc # Renamed
         fi
     env:
-      - 'GEMINI_SANDBOX=$_CONTAINER_TOOL'
+      - 'GROK_SANDBOX=$_CONTAINER_TOOL' # Renamed
       - 'SANDBOX_IMAGE_REGISTRY=$_SANDBOX_IMAGE_REGISTRY'
       - 'SANDBOX_IMAGE_NAME=$_SANDBOX_IMAGE_NAME'
 

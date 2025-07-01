@@ -1,11 +1,11 @@
 name: Feature Request
-description: Suggest an idea for this project
+description: Suggest an idea for this project # Will be Grok CLI after project rename
 labels: ['kind/enhancement', 'status/need-triage']
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest an enhancement! Please search [existing issues](https://github.com/google-gemini/gemini-cli/issues) to see if a similar feature has already been requested.
+        Thanks for taking the time to suggest an enhancement! Please search [existing issues](https://github.com/xai-org/grok-cli/issues) to see if a similar feature has already been requested. # Renamed URL
 
   - type: textarea
     id: feature
