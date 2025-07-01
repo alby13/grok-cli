@@ -1,12 +1,12 @@
 {
-  "name": "@google/gemini-cli",
+  "name": "@xai/grok-cli",
   "version": "0.1.6",
-  "description": "Gemini CLI",
-  "repository": "google-gemini/gemini-cli",
+  "description": "Grok CLI",
+  "repository": "xai-org/grok-cli",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "gemini": "dist/index.js"
+    "grok": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
@@ -27,7 +27,7 @@
     "dist"
   ],
   "config": {
-    "sandboxImageUri": "gemini-cli-sandbox"
+    "sandboxImageUri": "grok-cli-sandbox"
   },
   "dependencies": {
     "@google/gemini-cli-core": "*",

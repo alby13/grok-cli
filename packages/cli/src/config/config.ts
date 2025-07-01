@@ -140,7 +140,7 @@ async function parseArguments(): Promise<CliArgs> {
 // This function is now a thin wrapper around the server's implementation.
 // It's kept in the CLI for now as App.tsx directly calls it for memory refresh.
 // TODO: Consider if App.tsx should get memory via a server call or if Config should refresh itself.
-export async function loadHierarchicalGeminiMemory(
+export async function loadHierarchicalGrokMemory( // Renamed
   currentWorkingDirectory: string,
   debugMode: boolean,
   fileService: FileDiscoveryService,
@@ -151,9 +151,9 @@ export async function loadHierarchicalGeminiMemory(
       `CLI: Delegating hierarchical memory load to server for CWD: ${currentWorkingDirectory}`,
     );
   }
-  // Directly call the server function.
-  // The server function will use its own homedir() for the global path.
-  return loadServerHierarchicalMemory(
+  // Directly call the server function (which will also be renamed).
+  // For now, assuming loadServerHierarchicalMemory will be loadServerHierarchicalGrokMemory
+  return loadServerHierarchicalMemory( // This will be updated once core is refactored
     currentWorkingDirectory,
     debugMode,
     fileService,
@@ -185,8 +185,8 @@ export async function loadCliConfig(
   const extensionContextFilePaths = extensions.flatMap((e) => e.contextFiles);
 
   const fileService = new FileDiscoveryService(process.cwd());
-  // Call the (now wrapper) loadHierarchicalGeminiMemory which calls the server's version
-  const { memoryContent, fileCount } = await loadHierarchicalGeminiMemory(
+  // Call the (now wrapper) loadHierarchicalGrokMemory which calls the server's version
+  const { memoryContent, fileCount } = await loadHierarchicalGrokMemory( // Renamed
     process.cwd(),
     debugMode,
     fileService,

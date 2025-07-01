@@ -1,6 +1,6 @@
 # Web Fetch Tool (`web_fetch`)
 
-This document describes the `web_fetch` tool for the Gemini CLI.
+This document describes the `web_fetch` tool for the Grok CLI.
 
 ## Description
 
@@ -12,11 +12,11 @@ Use `web_fetch` to summarize, compare, or extract information from web pages. Th
 
 - `prompt` (string, required): A comprehensive prompt that includes the URL(s) (up to 20) to fetch and specific instructions on how to process their content. For example: `"Summarize https://example.com/article and extract key points from https://another.com/data"`. The prompt must contain at least one URL starting with `http://` or `https://`.
 
-## How to use `web_fetch` with the Gemini CLI
+## How to use `web_fetch` with the Grok CLI
 
-To use `web_fetch` with the Gemini CLI, provide a natural language prompt that contains URLs. The tool will ask for confirmation before fetching any URLs. Once confirmed, the tool will process URLs through Gemini API's `urlContext`.
+To use `web_fetch` with the Grok CLI, provide a natural language prompt that contains URLs. The tool will ask for confirmation before fetching any URLs. Once confirmed, the tool will process URLs through Grok API's `urlContext`.
 
-If the Gemini API cannot access the URL, the tool will fall back to fetching content directly from the local machine. The tool will format the response, including source attribution and citations where possible. The tool will then provide the response to the user.
+If the Grok API cannot access the URL, the tool will fall back to fetching content directly from the local machine. The tool will format the response, including source attribution and citations where possible. The tool will then provide the response to the user.
 
 Usage:
 
@@ -40,5 +40,5 @@ web_fetch(prompt="What are the differences in the conclusions of these two paper
 
 ## Important notes
 
-- **URL processing:** `web_fetch` relies on the Gemini API's ability to access and process the given URLs.
+- **URL processing:** `web_fetch` relies on the Grok API's ability to access and process the given URLs.
 - **Output quality:** The quality of the output will depend on the clarity of the instructions in the prompt.

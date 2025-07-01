@@ -38,7 +38,7 @@ export class XaiClient {
   constructor(private config: Config) {
     const apiKey = this.config.getApiKey();
     if (!apiKey) {
-      throw new Error('XAI_API_KEY environment variable is not set or configured.');
+      throw new Error('GROK_API_KEY environment variable is not set or configured.');
     }
     this.openAIClient = new OpenAI({
       apiKey: apiKey,

@@ -6,11 +6,37 @@
 
 import * as path from 'node:path';
 import process from 'node:process';
-import {
-  AuthType,
-  ContentGeneratorConfig,
-  createContentGeneratorConfig,
-} from '../core/contentGenerator.js';
+// Define minimal AuthType and ContentGeneratorConfig locally
+// as the original source 'contentGenerator.js' is not available.
+export enum AuthType {
+  USE_XAI = 'use_xai', // For GROK_API_KEY
+  // Add other types if they become relevant and clear
+}
+
+export interface ContentGeneratorConfig {
+  model: string;
+  apiKey?: string; // GROK_API_KEY will be set here
+  authType: AuthType;
+  // Add other properties if discovered to be necessary for XaiClient
+}
+
+// This function will now be a simplified local version.
+async function createContentGeneratorConfig(
+  model: string,
+  authType: AuthType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _config: Config, // Keep for signature compatibility if other parts use it
+): Promise<ContentGeneratorConfig> {
+  if (authType === AuthType.USE_XAI) {
+    const apiKey = process.env.GROK_API_KEY;
+    if (!apiKey) {
+      throw new Error('GROK_API_KEY is not set for USE_XAI auth type.');
+    }
+    return { model, authType, apiKey };
+  }
+  throw new Error(`Unsupported authType: ${authType} for Grok CLI`);
+}
+
 import { ToolRegistry } from '../tools/tool-registry.js';
 import { LSTool } from '../tools/ls.js';
 import { ReadFileTool } from '../tools/read-file.js';
@@ -21,10 +47,10 @@ import { ShellTool } from '../tools/shell.js';
 import { WriteFileTool } from '../tools/write-file.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { ReadManyFilesTool } from '../tools/read-many-files.js';
-import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
+import { MemoryTool, setGrokMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
-import { GeminiClient } from '../core/client.js';
-import { GEMINI_CONFIG_DIR as GEMINI_DIR } from '../tools/memoryTool.js';
+import { XaiClient } from '../core/xaiclient.js'; // Corrected path
+import { GROK_CONFIG_DIR as GROK_DIR } from '../tools/memoryTool.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { GitService } from '../services/gitService.js';
 import { getProjectTempDir } from '../utils/paths.js';
@@ -36,8 +62,9 @@ import {
   StartSessionEvent,
 } from '../telemetry/index.js';
 import {
-  DEFAULT_GEMINI_EMBEDDING_MODEL,
-  DEFAULT_GEMINI_FLASH_MODEL,
+  DEFAULT_GROK_MODEL, // Added this
+  DEFAULT_GROK_EMBEDDING_MODEL,
+  DEFAULT_GROK_FLASH_MODEL,
 } from './models.js';
 import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
 
@@ -108,7 +135,7 @@ export interface ConfigParameters {
   mcpServerCommand?: string;
   mcpServers?: Record<string, MCPServerConfig>;
   userMemory?: string;
-  geminiMdFileCount?: number;
+  grokMdFileCount?: number;
   approvalMode?: ApprovalMode;
   showMemoryUsage?: boolean;
   contextFileName?: string | string[];
@@ -145,13 +172,13 @@ export class Config {
   private readonly mcpServerCommand: string | undefined;
   private readonly mcpServers: Record<string, MCPServerConfig> | undefined;
   private userMemory: string;
-  private geminiMdFileCount: number;
+  private grokMdFileCount: number;
   private approvalMode: ApprovalMode;
   private readonly showMemoryUsage: boolean;
   private readonly accessibility: AccessibilitySettings;
   private readonly telemetrySettings: TelemetrySettings;
   private readonly usageStatisticsEnabled: boolean;
-  private geminiClient!: GeminiClient;
+  private xaiClient!: XaiClient;
   private readonly fileFiltering: {
     respectGitIgnore: boolean;
     enableRecursiveFileSearch: boolean;
@@ -170,7 +197,7 @@ export class Config {
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
     this.embeddingModel =
-      params.embeddingModel ?? DEFAULT_GEMINI_EMBEDDING_MODEL;
+      params.embeddingModel ?? DEFAULT_GROK_EMBEDDING_MODEL;
     this.sandbox = params.sandbox;
     this.targetDir = path.resolve(params.targetDir);
     this.debugMode = params.debugMode;
@@ -183,7 +210,7 @@ export class Config {
     this.mcpServerCommand = params.mcpServerCommand;
     this.mcpServers = params.mcpServers;
     this.userMemory = params.userMemory ?? '';
-    this.geminiMdFileCount = params.geminiMdFileCount ?? 0;
+    this.grokMdFileCount = params.grokMdFileCount ?? 0;
     this.approvalMode = params.approvalMode ?? ApprovalMode.DEFAULT;
     this.showMemoryUsage = params.showMemoryUsage ?? false;
     this.accessibility = params.accessibility ?? {};
@@ -209,7 +236,7 @@ export class Config {
     this.extensionContextFilePaths = params.extensionContextFilePaths ?? [];
 
     if (params.contextFileName) {
-      setGeminiMdFilename(params.contextFileName);
+      setGrokMdFilename(params.contextFileName);
     }
 
     if (this.telemetrySettings.enabled) {
@@ -241,10 +268,10 @@ export class Config {
       this,
     );
 
-    const gc = new GeminiClient(this);
-    this.geminiClient = gc;
+    const xc = new XaiClient(this);
+    this.xaiClient = xc;
     this.toolRegistry = await createToolRegistry(this);
-    await gc.initialize(contentConfig);
+    await xc.initialize(contentConfig);
     this.contentGeneratorConfig = contentConfig;
 
     // Reset the session flag since we're explicitly changing auth and using default model
@@ -350,12 +377,12 @@ export class Config {
     this.userMemory = newUserMemory;
   }
 
-  getGeminiMdFileCount(): number {
-    return this.geminiMdFileCount;
+  getGrokMdFileCount(): number {
+    return this.grokMdFileCount;
   }
 
-  setGeminiMdFileCount(count: number): void {
-    this.geminiMdFileCount = count;
+  setGrokMdFileCount(count: number): void {
+    this.grokMdFileCount = count;
   }
 
   getApprovalMode(): ApprovalMode {
@@ -390,12 +417,16 @@ export class Config {
     return this.telemetrySettings.target ?? DEFAULT_TELEMETRY_TARGET;
   }
 
-  getGeminiClient(): GeminiClient {
-    return this.geminiClient;
+  getXaiClient(): XaiClient {
+    return this.xaiClient;
   }
 
-  getGeminiDir(): string {
-    return path.join(this.targetDir, GEMINI_DIR);
+  getApiKey(): string | undefined {
+    return process.env.GROK_API_KEY;
+  }
+
+  getGrokDir(): string {
+    return path.join(this.targetDir, GROK_DIR);
   }
 
   getProjectTempDir(): string {
@@ -494,4 +525,4 @@ export function createToolRegistry(config: Config): Promise<ToolRegistry> {
 }
 
 // Export model constants for use in CLI
-export { DEFAULT_GEMINI_FLASH_MODEL };
+export { DEFAULT_GROK_FLASH_MODEL };

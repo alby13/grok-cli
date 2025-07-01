@@ -66,8 +66,8 @@ export class ClearcutLogger {
 
   createLogEvent(name: string, data: object): object {
     return {
-      console_type: 'GEMINI_CLI',
-      application: 102,
+      console_type: 'GROK_CLI', // Renamed
+      application: 102, // This might need to change if xAI has a specific app ID
       event_name: name,
       client_install_id: getPersistentUserId(),
       event_metadata: [data] as object[],
@@ -183,63 +183,63 @@ export class ClearcutLogger {
   logStartSessionEvent(event: StartSessionEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_MODEL,
+        grok_cli_key: EventMetadataKey.GROK_CLI_START_SESSION_MODEL, // Renamed
         value: event.model,
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_EMBEDDING_MODEL,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_EMBEDDING_MODEL, // Renamed
         value: event.embedding_model,
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_SANDBOX,
+        grok_cli_key: EventMetadataKey.GROK_CLI_START_SESSION_SANDBOX, // Renamed
         value: event.sandbox_enabled.toString(),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_CORE_TOOLS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_START_SESSION_CORE_TOOLS, // Renamed
         value: event.core_tools_enabled,
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_APPROVAL_MODE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_START_SESSION_APPROVAL_MODE, // Renamed
         value: event.approval_mode,
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_API_KEY_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_API_KEY_ENABLED, // Renamed
         value: event.api_key_enabled.toString(),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_VERTEX_API_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_VERTEX_API_ENABLED, // Renamed
         value: event.vertex_ai_enabled.toString(),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_DEBUG_MODE_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_DEBUG_MODE_ENABLED, // Renamed
         value: event.debug_enabled.toString(),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_VERTEX_API_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_VERTEX_API_ENABLED, // Renamed
         value: event.vertex_ai_enabled.toString(),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_MCP_SERVERS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_START_SESSION_MCP_SERVERS, // Renamed
         value: event.mcp_servers,
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_VERTEX_API_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_VERTEX_API_ENABLED, // Renamed
         value: event.vertex_ai_enabled.toString(),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_TELEMETRY_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_TELEMETRY_ENABLED, // Renamed
         value: event.telemetry_enabled.toString(),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_START_SESSION_TELEMETRY_LOG_USER_PROMPTS_ENABLED,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_START_SESSION_TELEMETRY_LOG_USER_PROMPTS_ENABLED, // Renamed
         value: event.telemetry_log_user_prompts_enabled.toString(),
       },
     ];
@@ -251,7 +251,7 @@ export class ClearcutLogger {
   logNewPromptEvent(event: UserPromptEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_USER_PROMPT_LENGTH,
+        grok_cli_key: EventMetadataKey.GROK_CLI_USER_PROMPT_LENGTH, // Renamed
         value: JSON.stringify(event.prompt_length),
       },
     ];
@@ -263,27 +263,27 @@ export class ClearcutLogger {
   logToolCallEvent(event: ToolCallEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_CALL_NAME,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_CALL_NAME, // Renamed
         value: JSON.stringify(event.function_name),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_CALL_DECISION,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_CALL_DECISION, // Renamed
         value: JSON.stringify(event.decision),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_CALL_SUCCESS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_CALL_SUCCESS, // Renamed
         value: JSON.stringify(event.success),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_CALL_DURATION_MS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_CALL_DURATION_MS, // Renamed
         value: JSON.stringify(event.duration_ms),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_ERROR_MESSAGE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_ERROR_MESSAGE, // Renamed
         value: JSON.stringify(event.error),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_TOOL_CALL_ERROR_TYPE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_TOOL_CALL_ERROR_TYPE, // Renamed
         value: JSON.stringify(event.error_type),
       },
     ];
@@ -295,7 +295,7 @@ export class ClearcutLogger {
   logApiRequestEvent(event: ApiRequestEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_REQUEST_MODEL,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_REQUEST_MODEL, // Renamed
         value: JSON.stringify(event.model),
       },
     ];
@@ -307,44 +307,44 @@ export class ClearcutLogger {
   logApiResponseEvent(event: ApiResponseEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_RESPONSE_MODEL,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_RESPONSE_MODEL, // Renamed
         value: JSON.stringify(event.model),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_RESPONSE_STATUS_CODE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_RESPONSE_STATUS_CODE, // Renamed
         value: JSON.stringify(event.status_code),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_RESPONSE_DURATION_MS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_RESPONSE_DURATION_MS, // Renamed
         value: JSON.stringify(event.duration_ms),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_ERROR_MESSAGE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_ERROR_MESSAGE, // Renamed
         value: JSON.stringify(event.error),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_API_RESPONSE_INPUT_TOKEN_COUNT,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_API_RESPONSE_INPUT_TOKEN_COUNT, // Renamed
         value: JSON.stringify(event.input_token_count),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_API_RESPONSE_OUTPUT_TOKEN_COUNT,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_API_RESPONSE_OUTPUT_TOKEN_COUNT, // Renamed
         value: JSON.stringify(event.output_token_count),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_API_RESPONSE_CACHED_TOKEN_COUNT,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_API_RESPONSE_CACHED_TOKEN_COUNT, // Renamed
         value: JSON.stringify(event.cached_content_token_count),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_API_RESPONSE_THINKING_TOKEN_COUNT,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_API_RESPONSE_THINKING_TOKEN_COUNT, // Renamed
         value: JSON.stringify(event.thoughts_token_count),
       },
       {
-        gemini_cli_key:
-          EventMetadataKey.GEMINI_CLI_API_RESPONSE_THINKING_TOKEN_COUNT,
+        grok_cli_key: // Renamed
+          EventMetadataKey.GROK_CLI_API_RESPONSE_THINKING_TOKEN_COUNT, // Renamed This seems to be a duplicate key in original, retaining for now.
         value: JSON.stringify(event.tool_token_count),
       },
     ];
@@ -356,19 +356,19 @@ export class ClearcutLogger {
   logApiErrorEvent(event: ApiErrorEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_ERROR_MODEL,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_ERROR_MODEL, // Renamed
         value: JSON.stringify(event.model),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_ERROR_TYPE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_ERROR_TYPE, // Renamed
         value: JSON.stringify(event.error_type),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_ERROR_STATUS_CODE,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_ERROR_STATUS_CODE, // Renamed
         value: JSON.stringify(event.status_code),
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_API_ERROR_DURATION_MS,
+        grok_cli_key: EventMetadataKey.GROK_CLI_API_ERROR_DURATION_MS, // Renamed
         value: JSON.stringify(event.duration_ms),
       },
     ];
@@ -380,7 +380,7 @@ export class ClearcutLogger {
   logEndSessionEvent(event: EndSessionEvent): void {
     const data = [
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_END_SESSION_ID,
+        grok_cli_key: EventMetadataKey.GROK_CLI_END_SESSION_ID, // Renamed
         value: event?.session_id?.toString() ?? '',
       },
     ];

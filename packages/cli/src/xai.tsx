@@ -44,7 +44,7 @@ function getNodeMemoryArgs(config: Config): string[] {
     console.debug(`Current heap size ${currentMaxOldSpaceSizeMb.toFixed(2)} MB`);
   }
 
-  if (process.env.XAI_CLI_NO_RELAUNCH) {
+  if (process.env.GROK_CLI_NO_RELAUNCH) {
     return [];
   }
 
@@ -60,7 +60,7 @@ function getNodeMemoryArgs(config: Config): string[] {
 
 async function relaunchWithAdditionalArgs(additionalArgs: string[]) {
   const nodeArgs = [...additionalArgs, ...process.argv.slice(1)];
-  const newEnv = { ...process.env, XAI_CLI_NO_RELAUNCH: 'true' };
+  const newEnv = { ...process.env, GROK_CLI_NO_RELAUNCH: 'true' };
   const child = spawn(process.execPath, nodeArgs, { stdio: 'inherit', env: newEnv });
   await new Promise((resolve) => child.on('close', resolve));
   process.exit(0);
@@ -82,8 +82,8 @@ export async function main() {
   const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(settings.merged, extensions, sessionId);
 
-  // Set default fallback to xAI api key. Assumes AuthType.USE_XAI exists.
-  if (!settings.merged.selectedAuthType && process.env.XAI_API_KEY) {
+  // Set default fallback to Grok api key. Assumes AuthType.USE_XAI exists.
+  if (!settings.merged.selectedAuthType && process.env.GROK_API_KEY) {
     settings.setValue(SettingScope.User, 'selectedAuthType', AuthType.USE_XAI);
   }
 

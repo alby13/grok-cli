@@ -1,6 +1,6 @@
-# Gemini CLI file system tools
+# Grok CLI file system tools
 
-The Gemini CLI provides a comprehensive suite of tools for interacting with the local file system. These tools allow the Gemini model to read from, write to, list, search, and modify files and directories, all under your control and typically with confirmation for sensitive operations.
+The Grok CLI provides a comprehensive suite of tools for interacting with the local file system. These tools allow the Grok model to read from, write to, list, search, and modify files and directories, all under your control and typically with confirmation for sensitive operations.
 
 **Note:** All file system tools operate within a `rootDirectory` (usually the current working directory where you launched the CLI) for security. Paths that you provide to these tools are generally expected to be absolute or are resolved relative to this root directory.
 
@@ -194,7 +194,7 @@ The Gemini CLI provides a comprehensive suite of tools for interacting with the 
   - If `old_string` is provided, it reads the `file_path` and attempts to find exactly one occurrence of `old_string`.
   - If one occurrence is found, it replaces it with `new_string`.
   - **Enhanced Reliability (Multi-Stage Edit Correction):** To significantly improve the success rate of edits, especially when the model-provided `old_string` might not be perfectly precise, the tool incorporates a multi-stage edit correction mechanism.
-  - If the initial `old_string` isn't found or matches multiple locations, the tool can leverage the Gemini model to iteratively refine `old_string` (and potentially `new_string`).
+  - If the initial `old_string` isn't found or matches multiple locations, the tool can leverage the Grok model to iteratively refine `old_string` (and potentially `new_string`).
   - This self-correction process attempts to identify the unique segment the model intended to modify, making the `replace` operation more robust even with slightly imperfect initial context.
 - **Failure Conditions:** Despite the correction mechanism, the tool will fail if:
   - `file_path` is not absolute or is outside the root directory.
@@ -215,7 +215,7 @@ The Gemini CLI provides a comprehensive suite of tools for interacting with the 
   - If `old_string` is provided, it reads the `file_path` and attempts to find exactly one occurrence of `old_string`.
   - If one occurrence is found, it replaces it with `new_string`.
   - **Enhanced Reliability (Multi-Stage Edit Correction):** To significantly improve the success rate of edits, especially when the model-provided `old_string` might not be perfectly precise, the tool incorporates a multi-stage edit correction mechanism.
-    - If the initial `old_string` isn't found or matches multiple locations, the tool can leverage the Gemini model to iteratively refine `old_string` (and potentially `new_string`).
+    - If the initial `old_string` isn't found or matches multiple locations, the tool can leverage the Grok model to iteratively refine `old_string` (and potentially `new_string`).
     - This self-correction process attempts to identify the unique segment the model intended to modify, making the `replace` operation more robust even with slightly imperfect initial context.
 - **Failure conditions:** Despite the correction mechanism, the tool will fail if:
   - `file_path` is not absolute or is outside the root directory.
@@ -228,4 +228,4 @@ The Gemini CLI provides a comprehensive suite of tools for interacting with the 
   - On failure: An error message explaining the reason (e.g., `Failed to edit, 0 occurrences found...`, `Failed to edit, expected 1 occurrences but found 2...`).
 - **Confirmation:** Yes. Shows a diff of the proposed changes and asks for user approval before writing to the file.
 
-These file system tools provide a foundation for the Gemini CLI to understand and interact with your local project context.
+These file system tools provide a foundation for the Grok CLI to understand and interact with your local project context.

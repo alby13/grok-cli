@@ -4,30 +4,26 @@ This guide provides solutions to common issues and debugging tips.
 
 ## Authentication
 
-- **Error: `Failed to login. Message: Request contains an invalid argument`**
+- **Error: `Failed to login. Message: Request contains an invalid argument`** (This error may or may not be applicable to Grok, depending on its authentication flows)
 
-  - Users with Google Workspace accounts, or users with Google Cloud accounts
-    associated with their Gmail accounts may not be able to activate the free
-    tier of the Google Code Assist plan.
-  - For Google Cloud accounts, you can work around this by setting
-    `GOOGLE_CLOUD_PROJECT` to your project ID.
-  - You can also grab an API key from [AI
-    Studio](http://aistudio.google.com/app/apikey), which also includes a
-    separate free tier.
+  - If Grok CLI uses OAuth or similar complex authentication and you encounter this, it might relate to account permissions or specific configurations required by xAI.
+  - Check xAI's official documentation for authentication troubleshooting.
+  - Ensure your xAI account is properly set up and has API access if required.
+  - You can also grab an API key from [xAI Platform](https://x.ai/platform) (or the relevant xAI API key page).
 
 ## Frequently asked questions (FAQs)
 
-- **Q: How do I update Gemini CLI to the latest version?**
+- **Q: How do I update Grok CLI to the latest version?**
 
-  - A: If installed globally via npm, update Gemini CLI using the command `npm install -g @google/gemini-cli@latest`. If run from source, pull the latest changes from the repository and rebuild using `npm run build`.
+  - A: If installed globally via npm, update Grok CLI using the command `npm install -g @xai/grok-cli@latest`. If run from source, pull the latest changes from the repository and rebuild using `npm run build`.
 
-- **Q: Where are Gemini CLI configuration files stored?**
+- **Q: Where are Grok CLI configuration files stored?**
 
-  - A: The CLI configuration is stored within two `settings.json` files: one in your home directory and one in your project's root directory. In both locations, `settings.json` is found in the `.gemini/` folder. Refer to [CLI Configuration](./cli/configuration.md) for more details.
+  - A: The CLI configuration is stored within two `settings.json` files: one in your home directory and one in your project's root directory. In both locations, `settings.json` is found in the `.grok/` folder. Refer to [CLI Configuration](./cli/configuration.md) for more details.
 
 - **Q: Why don't I see cached token counts in my stats output?**
 
-  - A: Cached token information is only displayed when cached tokens are being used. This feature is available for API key users (Gemini API key or Vertex AI) but not for OAuth users (Google Personal/Enterprise accounts) at this time, as the Code Assist API does not support cached content creation. You can still view your total token usage with the `/stats` command.
+  - A: Cached token information display depends on whether the Grok API supports and the CLI implements this feature for the specific authentication method used. API key usage might be more likely to show this if supported. You can still view your total token usage with the `/stats` command if the feature is present.
 
 ## Common error messages and solutions
 
@@ -37,11 +33,11 @@ This guide provides solutions to common issues and debugging tips.
   - **Solution:**
     Either stop the other process that is using the port or configure the MCP server to use a different port.
 
-- **Error: Command not found (when attempting to run Gemini CLI).**
+- **Error: Command not found (when attempting to run Grok CLI).**
 
-  - **Cause:** Gemini CLI is not correctly installed or not in your system's PATH.
+  - **Cause:** Grok CLI is not correctly installed or not in your system's PATH.
   - **Solution:**
-    1.  Ensure Gemini CLI installation was successful.
+    1.  Ensure Grok CLI installation was successful.
     2.  If installed globally, check that your npm global binary directory is in your PATH.
     3.  If running from source, ensure you are using the correct command to invoke it (e.g., `node packages/cli/dist/index.js ...`).
 

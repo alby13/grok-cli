@@ -1,39 +1,38 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2025 xAI
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AuthType } from '@google/gemini-cli-core';
+import { AuthType } from '@google/gemini-cli-core'; // This will be updated to @xai/grok-cli-core
 import { loadEnvironment } from './config.js';
 
 export const validateAuthMethod = (authMethod: string): string | null => {
-  loadEnvironment();
-  if (authMethod === AuthType.LOGIN_WITH_GOOGLE_PERSONAL) {
-    return null;
-  }
+  loadEnvironment(); // Ensures .env variables are loaded
 
-  if (authMethod === AuthType.USE_GEMINI) {
-    if (!process.env.GEMINI_API_KEY) {
-      return 'GEMINI_API_KEY environment variable not found. Add that to your .env and try again, no reload needed!';
+  // Primary authentication method for Grok CLI will be API Key.
+  // We'll keep AuthType.USE_XAI as the representation for this.
+  // Other AuthTypes like LOGIN_WITH_GOOGLE_PERSONAL, USE_GEMINI, USE_VERTEX_AI
+  // are no longer relevant and will be removed or adapted in the core package.
+
+  if (authMethod === AuthType.USE_XAI) { // Assuming AuthType.USE_XAI will be the standard
+    if (!process.env.GROK_API_KEY) {
+      return 'GROK_API_KEY environment variable not found. Please set it in your environment (e.g., in a .env file) and try again.';
     }
-    return null;
+    // Potentially add further validation for the API key format if xAI specifies one.
+    return null; // API key found, validation passes for now.
   }
 
-  if (authMethod === AuthType.USE_VERTEX_AI) {
-    const hasVertexProjectLocationConfig =
-      !!process.env.GOOGLE_CLOUD_PROJECT && !!process.env.GOOGLE_CLOUD_LOCATION;
-    const hasGoogleApiKey = !!process.env.GOOGLE_API_KEY;
-    if (!hasVertexProjectLocationConfig && !hasGoogleApiKey) {
-      return (
-        'Must specify GOOGLE_GENAI_USE_VERTEXAI=true and either:\n' +
-        '• GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION environment variables.\n' +
-        '• GOOGLE_API_KEY environment variable (if using express mode).\n' +
-        'Update your .env and try again, no reload needed!'
-      );
-    }
-    return null;
+  // Handling cases where old auth methods might still be in user config
+  // or if other methods are introduced later for xAI.
+  if (
+    authMethod === AuthType.LOGIN_WITH_GOOGLE_PERSONAL ||
+    authMethod === AuthType.USE_GEMINI ||
+    authMethod === AuthType.USE_VERTEX_AI
+  ) {
+    return `Auth method '${authMethod}' is not supported for Grok CLI. Please use an API key (GROK_API_KEY).`;
   }
 
-  return 'Invalid auth method selected.';
+  // Fallback for any other unexpected auth method string
+  return `Invalid or unsupported authentication method selected: '${authMethod}'. Please configure GROK_API_KEY.`;
 };

@@ -8,11 +8,11 @@ import React from 'react';
 import type { HistoryItem } from '../types.js';
 import { UserMessage } from './messages/UserMessage.js';
 import { UserShellMessage } from './messages/UserShellMessage.js';
-import { GeminiMessage } from './messages/GeminiMessage.js';
+import { GrokMessage } from './messages/GrokMessage.js'; // Renamed
 import { InfoMessage } from './messages/InfoMessage.js';
 import { ErrorMessage } from './messages/ErrorMessage.js';
 import { ToolGroupMessage } from './messages/ToolGroupMessage.js';
-import { GeminiMessageContent } from './messages/GeminiMessageContent.js';
+import { GrokMessageContent } from './messages/GrokMessageContent.js'; // Renamed
 import { CompressionMessage } from './messages/CompressionMessage.js';
 import { Box } from 'ink';
 import { AboutBox } from './AboutBox.js';
@@ -41,16 +41,16 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
     {/* Render standard message types */}
     {item.type === 'user' && <UserMessage text={item.text} />}
     {item.type === 'user_shell' && <UserShellMessage text={item.text} />}
-    {item.type === 'gemini' && (
-      <GeminiMessage
+    {item.type === 'assistant' && (
+      <GrokMessage
         text={item.text}
         isPending={isPending}
         availableTerminalHeight={availableTerminalHeight}
         terminalWidth={terminalWidth}
       />
     )}
-    {item.type === 'gemini_content' && (
-      <GeminiMessageContent
+    {item.type === 'assistant_content' && (
+      <GrokMessageContent
         text={item.text}
         isPending={isPending}
         availableTerminalHeight={availableTerminalHeight}

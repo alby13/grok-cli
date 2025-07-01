@@ -18,7 +18,7 @@ export enum StreamingState {
 }
 
 // Copied from server/src/core/turn.ts for CLI usage
-export enum GeminiEventType {
+export enum AssistantEventType { // Renamed
   Content = 'content',
   ToolCallRequest = 'tool_call_request',
   // Add other event types if the UI hook needs to handle them
@@ -60,7 +60,7 @@ export interface CompressionProps {
 }
 
 export interface HistoryItemBase {
-  text?: string; // Text content for user/gemini/info/error messages
+  text?: string; // Text content for user/assistant/info/error messages
 }
 
 export type HistoryItemUser = HistoryItemBase & {
@@ -68,13 +68,13 @@ export type HistoryItemUser = HistoryItemBase & {
   text: string;
 };
 
-export type HistoryItemGemini = HistoryItemBase & {
-  type: 'gemini';
+export type HistoryItemAssistant = HistoryItemBase & { // Renamed
+  type: 'assistant'; // Renamed
   text: string;
 };
 
-export type HistoryItemGeminiContent = HistoryItemBase & {
-  type: 'gemini_content';
+export type HistoryItemAssistantContent = HistoryItemBase & { // Renamed
+  type: 'assistant_content'; // Renamed
   text: string;
 };
 
@@ -133,8 +133,8 @@ export type HistoryItemCompression = HistoryItemBase & {
 export type HistoryItemWithoutId =
   | HistoryItemUser
   | HistoryItemUserShell
-  | HistoryItemGemini
-  | HistoryItemGeminiContent
+  | HistoryItemAssistant // Renamed
+  | HistoryItemAssistantContent // Renamed
   | HistoryItemInfo
   | HistoryItemError
   | HistoryItemAbout
@@ -153,7 +153,7 @@ export enum MessageType {
   ABOUT = 'about',
   STATS = 'stats',
   QUIT = 'quit',
-  GEMINI = 'gemini',
+  ASSISTANT = 'assistant', // Renamed
   COMPRESSION = 'compression',
 }
 

@@ -65,7 +65,7 @@ export const Footer: React.FC<FooterProps> = ({
       >
         {process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec' ? (
           <Text color="green">
-            {process.env.SANDBOX.replace(/^gemini-(?:cli-)?/, '')}
+            {process.env.SANDBOX.replace(/^grok-(?:cli-)?/, '')}
           </Text>
         ) : process.env.SANDBOX === 'sandbox-exec' ? (
           <Text color={Colors.AccentYellow}>

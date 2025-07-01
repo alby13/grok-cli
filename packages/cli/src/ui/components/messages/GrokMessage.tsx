@@ -9,14 +9,14 @@ import { Text, Box } from 'ink';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
 import { Colors } from '../../colors.js';
 
-interface GeminiMessageProps {
+interface GrokMessageProps { // Renamed
   text: string;
   isPending: boolean;
   availableTerminalHeight?: number;
   terminalWidth: number;
 }
 
-export const GeminiMessage: React.FC<GeminiMessageProps> = ({
+export const GrokMessage: React.FC<GrokMessageProps> = ({ // Renamed
   text,
   isPending,
   availableTerminalHeight,

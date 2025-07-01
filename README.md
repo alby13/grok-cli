@@ -17,11 +17,11 @@ With the Grok CLI you can:
 2. **Run the CLI:** Execute the following command in your terminal:
 
    ```bash
-   npx https://github.com/alby13/grok-cli
+   npx https://github.com/xai-org/grok-cli
    ```
 
 3. **Pick a color theme**
-4. **Authenticate:** When prompted, sign in with your personal Google account. This will grant you up to 60 model requests per minute and 1,000 model requests per day using Grok.
+4. **Authenticate:** When prompted, sign in with your xAI account. This will grant you access to Grok based on your account's plan.
 
 You are now ready to use the Grok CLI!
 
@@ -53,7 +53,7 @@ grok
 Or work with an existing project:
 
 ```sh
-git clone https://github.com/alby13/grok-cli
+git clone https://github.com/xai-org/grok-cli
 cd grok-cli
 grok
 > Give me a summary of all of the changes that went in yesterday

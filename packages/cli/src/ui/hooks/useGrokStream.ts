@@ -8,12 +8,12 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useInput } from 'ink';
 import {
   Config,
-  GeminiClient,
-  GeminiEventType as ServerGeminiEventType,
-  ServerGeminiStreamEvent as GeminiEvent,
-  ServerGeminiContentEvent as ContentEvent,
-  ServerGeminiErrorEvent as ErrorEvent,
-  ServerGeminiChatCompressedEvent,
+  XaiClient,
+  AssistantEventType as ServerAssistantEventType,
+  ServerStreamEvent as AssistantEvent,
+  ContentEvent,
+  ErrorEvent,
+  ServerChatCompressedEvent, // Renamed
   getErrorMessage,
   isNodeError,
   MessageSenderType,
@@ -72,11 +72,11 @@ enum StreamProcessingStatus {
 }
 
 /**
- * Manages the Gemini stream, including user input, command processing,
+ * Manages the Grok stream, including user input, command processing,
  * API interaction, and tool call lifecycle.
  */
-export const useGeminiStream = (
-  geminiClient: GeminiClient,
+export const useGrokStream = ( // Renamed
+  xaiClient: XaiClient, // Renamed
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
   setShowHelp: React.Dispatch<React.SetStateAction<boolean>>,
@@ -146,7 +146,7 @@ export const useGeminiStream = (
     onExec,
     onDebugMessage,
     config,
-    geminiClient,
+    xaiClient, // Renamed
   );
 
   const streamingState = useMemo(() => {
@@ -164,7 +164,7 @@ export const useGeminiStream = (
             tc.status === 'error' ||
             tc.status === 'cancelled') &&
             !(tc as TrackedCompletedToolCall | TrackedCancelledToolCall)
-              .responseSubmittedToGemini),
+              .responseSubmittedToGrok), // Renamed
       )
     ) {
       return StreamingState.Responding;
@@ -210,7 +210,7 @@ export const useGeminiStream = (
         return { queryToSend: null, shouldProceed: false };
       }
 
-      let localQueryToSendToGemini: PartListUnion | null = null;
+      let localQueryToSendToGrok: PartListUnion | null = null; // Renamed
 
       if (typeof query === 'string') {
         const trimmedQuery = query.trim();
@@ -261,27 +261,27 @@ export const useGeminiStream = (
           if (!atCommandResult.shouldProceed) {
             return { queryToSend: null, shouldProceed: false };
           }
-          localQueryToSendToGemini = atCommandResult.processedQuery;
+          localQueryToSendToGrok = atCommandResult.processedQuery; // Renamed
         } else {
-          // Normal query for Gemini
+          // Normal query for Grok
           addItem(
             { type: MessageType.USER, text: trimmedQuery },
             userMessageTimestamp,
           );
-          localQueryToSendToGemini = trimmedQuery;
+          localQueryToSendToGrok = trimmedQuery; // Renamed
         }
       } else {
         // It's a function response (PartListUnion that isn't a string)
-        localQueryToSendToGemini = query;
+        localQueryToSendToGrok = query; // Renamed
       }
 
-      if (localQueryToSendToGemini === null) {
+      if (localQueryToSendToGrok === null) { // Renamed
         onDebugMessage(
-          'Query processing resulted in null, not sending to Gemini.',
+          'Query processing resulted in null, not sending to Grok.', // Updated text
         );
         return { queryToSend: null, shouldProceed: false };
       }
-      return { queryToSend: localQueryToSendToGemini, shouldProceed: true };
+      return { queryToSend: localQueryToSendToGrok, shouldProceed: true }; // Renamed
     },
     [
       config,
@@ -300,35 +300,35 @@ export const useGeminiStream = (
   const handleContentEvent = useCallback(
     (
       eventValue: ContentEvent['value'],
-      currentGeminiMessageBuffer: string,
+      currentAssistantMessageBuffer: string, // Renamed
       userMessageTimestamp: number,
     ): string => {
       if (turnCancelledRef.current) {
         // Prevents additional output after a user initiated cancel.
         return '';
       }
-      let newGeminiMessageBuffer = currentGeminiMessageBuffer + eventValue;
+      let newAssistantMessageBuffer = currentAssistantMessageBuffer + eventValue; // Renamed
       if (
-        pendingHistoryItemRef.current?.type !== 'gemini' &&
-        pendingHistoryItemRef.current?.type !== 'gemini_content'
+        pendingHistoryItemRef.current?.type !== 'assistant' && // Renamed
+        pendingHistoryItemRef.current?.type !== 'assistant_content' // Renamed
       ) {
         if (pendingHistoryItemRef.current) {
           addItem(pendingHistoryItemRef.current, userMessageTimestamp);
         }
-        setPendingHistoryItem({ type: 'gemini', text: '' });
-        newGeminiMessageBuffer = eventValue;
+        setPendingHistoryItem({ type: 'assistant', text: '' }); // Renamed
+        newAssistantMessageBuffer = eventValue; // Renamed
       }
       // Split large messages for better rendering performance. Ideally,
       // we should maximize the amount of output sent to <Static />.
-      const splitPoint = findLastSafeSplitPoint(newGeminiMessageBuffer);
-      if (splitPoint === newGeminiMessageBuffer.length) {
+      const splitPoint = findLastSafeSplitPoint(newAssistantMessageBuffer); // Renamed
+      if (splitPoint === newAssistantMessageBuffer.length) { // Renamed
         // Update the existing message with accumulated content
         setPendingHistoryItem((item) => ({
-          type: item?.type as 'gemini' | 'gemini_content',
-          text: newGeminiMessageBuffer,
+          type: item?.type as 'assistant' | 'assistant_content', // Renamed
+          text: newAssistantMessageBuffer, // Renamed
         }));
       } else {
-        // This indicates that we need to split up this Gemini Message.
+        // This indicates that we need to split up this Assistant Message. // Updated comment
         // Splitting a message is primarily a performance consideration. There is a
         // <Static> component at the root of App.tsx which takes care of rendering
         // content statically or dynamically. Everything but the last message is
@@ -336,21 +336,21 @@ export const useGeminiStream = (
         // multiple times per-second (as streaming occurs). Prior to this change you'd
         // see heavy flickering of the terminal. This ensures that larger messages get
         // broken up so that there are more "statically" rendered.
-        const beforeText = newGeminiMessageBuffer.substring(0, splitPoint);
-        const afterText = newGeminiMessageBuffer.substring(splitPoint);
+        const beforeText = newAssistantMessageBuffer.substring(0, splitPoint); // Renamed
+        const afterText = newAssistantMessageBuffer.substring(splitPoint); // Renamed
         addItem(
           {
             type: pendingHistoryItemRef.current?.type as
-              | 'gemini'
-              | 'gemini_content',
+              | 'assistant' // Renamed
+              | 'assistant_content', // Renamed
             text: beforeText,
           },
           userMessageTimestamp,
         );
-        setPendingHistoryItem({ type: 'gemini_content', text: afterText });
-        newGeminiMessageBuffer = afterText;
+        setPendingHistoryItem({ type: 'assistant_content', text: afterText }); // Renamed
+        newAssistantMessageBuffer = afterText; // Renamed
       }
-      return newGeminiMessageBuffer;
+      return newAssistantMessageBuffer; // Renamed
     },
     [addItem, pendingHistoryItemRef, setPendingHistoryItem],
   );
@@ -410,7 +410,7 @@ export const useGeminiStream = (
   );
 
   const handleChatCompressionEvent = useCallback(
-    (eventValue: ServerGeminiChatCompressedEvent['value']) =>
+    (eventValue: ServerChatCompressedEvent['value']) => // Renamed
       addItem(
         {
           type: 'info',
@@ -425,43 +425,43 @@ export const useGeminiStream = (
     [addItem, config],
   );
 
-  const processGeminiStreamEvents = useCallback(
+  const processAssistantStreamEvents = useCallback( // Renamed
     async (
-      stream: AsyncIterable<GeminiEvent>,
+      stream: AsyncIterable<AssistantEvent>, // Renamed
       userMessageTimestamp: number,
       signal: AbortSignal,
     ): Promise<StreamProcessingStatus> => {
-      let geminiMessageBuffer = '';
+      let assistantMessageBuffer = ''; // Renamed
       const toolCallRequests: ToolCallRequestInfo[] = [];
       for await (const event of stream) {
         switch (event.type) {
-          case ServerGeminiEventType.Thought:
+          case ServerAssistantEventType.Thought: // Renamed
             setThought(event.value);
             break;
-          case ServerGeminiEventType.Content:
-            geminiMessageBuffer = handleContentEvent(
+          case ServerAssistantEventType.Content: // Renamed
+            assistantMessageBuffer = handleContentEvent( // Renamed
               event.value,
-              geminiMessageBuffer,
+              assistantMessageBuffer, // Renamed
               userMessageTimestamp,
             );
             break;
-          case ServerGeminiEventType.ToolCallRequest:
+          case ServerAssistantEventType.ToolCallRequest: // Renamed
             toolCallRequests.push(event.value);
             break;
-          case ServerGeminiEventType.UserCancelled:
+          case ServerAssistantEventType.UserCancelled: // Renamed
             handleUserCancelledEvent(userMessageTimestamp);
             break;
-          case ServerGeminiEventType.Error:
+          case ServerAssistantEventType.Error: // Renamed
             handleErrorEvent(event.value, userMessageTimestamp);
             break;
-          case ServerGeminiEventType.ChatCompressed:
+          case ServerAssistantEventType.ChatCompressed: // Renamed (assuming this maps to ServerChatCompressedEvent)
             handleChatCompressionEvent(event.value);
             break;
-          case ServerGeminiEventType.UsageMetadata:
+          case ServerAssistantEventType.UsageMetadata: // Renamed
             addUsage(event.value);
             break;
-          case ServerGeminiEventType.ToolCallConfirmation:
-          case ServerGeminiEventType.ToolCallResponse:
+          case ServerAssistantEventType.ToolCallConfirmation: // Renamed
+          case ServerAssistantEventType.ToolCallResponse: // Renamed
             // do nothing
             break;
           default: {
@@ -502,7 +502,7 @@ export const useGeminiStream = (
       const abortSignal = abortControllerRef.current.signal;
       turnCancelledRef.current = false;
 
-      const { queryToSend, shouldProceed } = await prepareQueryForGemini(
+      const { queryToSend, shouldProceed } = await prepareQueryForGrok( // Renamed
         query,
         userMessageTimestamp,
         abortSignal,
@@ -520,8 +520,8 @@ export const useGeminiStream = (
       setInitError(null);
 
       try {
-        const stream = geminiClient.sendMessageStream(queryToSend, abortSignal);
-        const processingStatus = await processGeminiStreamEvents(
+        const stream = xaiClient.sendMessageStream(queryToSend, abortSignal);
+        const processingStatus = await processAssistantStreamEvents( // Renamed
           stream,
           userMessageTimestamp,
           abortSignal,
@@ -557,13 +557,13 @@ export const useGeminiStream = (
     [
       streamingState,
       setShowHelp,
-      prepareQueryForGemini,
-      processGeminiStreamEvents,
+      prepareQueryForGrok,
+      processAssistantStreamEvents,
       pendingHistoryItemRef,
       addItem,
       setPendingHistoryItem,
       setInitError,
-      geminiClient,
+      xaiClient,
       startNewTurn,
       onAuthError,
       config,
@@ -573,8 +573,8 @@ export const useGeminiStream = (
   /**
    * Automatically submits responses for completed tool calls.
    * This effect runs when `toolCalls` or `isResponding` changes.
-   * It ensures that tool responses are sent back to Gemini only when
-   * all processing for a given set of tools is finished and Gemini
+   * It ensures that tool responses are sent back to Grok only when
+   * all processing for a given set of tools is finished and Grok
    * is not already generating a response.
    */
   useEffect(() => {
@@ -597,7 +597,7 @@ export const useGeminiStream = (
               | TrackedCompletedToolCall
               | TrackedCancelledToolCall;
             return (
-              !completedOrCancelledCall.responseSubmittedToGemini &&
+              !completedOrCancelledCall.responseSubmittedToGrok &&
               completedOrCancelledCall.response?.responseParts !== undefined
             );
           }
@@ -630,7 +630,7 @@ export const useGeminiStream = (
         );
       }
 
-      // Only proceed with submitting to Gemini if ALL tools are complete.
+      // Only proceed with submitting to Grok if ALL tools are complete.
       const allToolsAreComplete =
         toolCalls.length > 0 &&
         toolCalls.length === completedAndReadyToSubmitTools.length;
@@ -639,24 +639,24 @@ export const useGeminiStream = (
         return;
       }
 
-      const geminiTools = completedAndReadyToSubmitTools.filter(
+      const assistantTools = completedAndReadyToSubmitTools.filter(
         (t) => !t.request.isClientInitiated,
       );
 
-      if (geminiTools.length === 0) {
+      if (assistantTools.length === 0) {
         return;
       }
 
-      // If all the tools were cancelled, don't submit a response to Gemini.
-      const allToolsCancelled = geminiTools.every(
+      // If all the tools were cancelled, don't submit a response to Grok.
+      const allToolsCancelled = assistantTools.every(
         (tc) => tc.status === 'cancelled',
       );
 
       if (allToolsCancelled) {
-        if (geminiClient) {
+        if (xaiClient) {
           // We need to manually add the function responses to the history
           // so the model knows the tools were cancelled.
-          const responsesToAdd = geminiTools.flatMap(
+          const responsesToAdd = assistantTools.flatMap(
             (toolCall) => toolCall.response.responseParts,
           );
           for (const response of responsesToAdd) {
@@ -668,24 +668,24 @@ export const useGeminiStream = (
             } else {
               parts = [response];
             }
-            geminiClient.addHistory({
-              role: 'user',
+            xaiClient.addHistory({
+              role: 'user', // Should this be 'tool' or 'function'? Needs verification based on OpenAI/Grok spec
               parts,
             });
           }
         }
 
-        const callIdsToMarkAsSubmitted = geminiTools.map(
+        const callIdsToMarkAsSubmitted = assistantTools.map(
           (toolCall) => toolCall.request.callId,
         );
         markToolsAsSubmitted(callIdsToMarkAsSubmitted);
         return;
       }
 
-      const responsesToSend: PartListUnion[] = geminiTools.map(
+      const responsesToSend: PartListUnion[] = assistantTools.map(
         (toolCall) => toolCall.response.responseParts,
       );
-      const callIdsToMarkAsSubmitted = geminiTools.map(
+      const callIdsToMarkAsSubmitted = assistantTools.map(
         (toolCall) => toolCall.request.callId,
       );
 
@@ -701,7 +701,7 @@ export const useGeminiStream = (
     submitQuery,
     markToolsAsSubmitted,
     addItem,
-    geminiClient,
+    xaiClient,
     performMemoryRefresh,
   ]);
 
@@ -774,7 +774,7 @@ export const useGeminiStream = (
             const toolName = toolCall.request.name;
             const fileName = path.basename(filePath);
             const toolCallWithSnapshotFileName = `${timestamp}-${fileName}-${toolName}.json`;
-            const clientHistory = await geminiClient?.getHistory();
+            const clientHistory = await xaiClient?.getHistory();
             const toolCallWithSnapshotFilePath = path.join(
               checkpointDir,
               toolCallWithSnapshotFileName,
@@ -808,7 +808,7 @@ export const useGeminiStream = (
       }
     };
     saveRestorableToolCalls();
-  }, [toolCalls, config, onDebugMessage, gitService, history, geminiClient]);
+  }, [toolCalls, config, onDebugMessage, gitService, history, xaiClient]);
 
   return {
     streamingState,
