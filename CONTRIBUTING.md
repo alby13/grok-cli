@@ -4,24 +4,9 @@ We would love to accept your patches and contributions to this project.
 
 ## Before you begin
 
-### Sign our Contributor License Agreement
-
-Contributions to this project must be accompanied by a
-[Contributor License Agreement](https://cla.developers.xAI.com/about) (CLA).
-You (or your employer) retain the copyright to your contribution; this simply
-gives us permission to use and redistribute your contributions as part of the
-project.
-
-If you or your current employer have already signed the xAI CLA (even if it
-was for a different project), you probably don't need to do it again.
-
-Visit <https://cla.developers.xAI.com/> to see your current agreements or to
-sign a new one.
-
 ### Review our Community Guidelines
 
-This project follows [xAI's Open Source Community
-Guidelines](https://opensource.xAI/conduct/).
+This project follows Github community guidelines.
 
 ## Contribution Process
 
@@ -96,7 +81,7 @@ This section guides contributors on how to build, modify, and understand the dev
 To clone the repository:
 
 ```bash
-git clone https://github.com/xAI-Grok/Grok-cli.git # Or your fork's URL
+git clone https://github.com/alby13/Grok-cli.git # Or your fork's URL
 cd Grok-cli
 ```
 
