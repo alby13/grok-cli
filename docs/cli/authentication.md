@@ -1,21 +1,21 @@
 ## Authentication Setup
 
-The Gemini CLI requires you to authenticate with Google's AI services. On initial startup you'll need to configure **one** of the following authentication methods:
+The Grok CLI requires you to authenticate with Google's AI services. On initial startup you'll need to configure **one** of the following authentication methods:
 
-1.  **Login with Google (Gemini Code Assist):**
+1.  **Login with Google (Grok Code Assist):**
 
     - Use this option to log in with your google account.
-    - During initial startup, Gemini CLI will direct you to a webpage for authentication. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
-    - Note that the web login must be done in a browser that can communicate with the machine Gemini CLI is being run from. (Specifically, the browser will be redirected to a localhost url that Gemini CLI will be listening on).
+    - During initial startup, Grok CLI will direct you to a webpage for authentication. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
+    - Note that the web login must be done in a browser that can communicate with the machine Grok CLI is being run from. (Specifically, the browser will be redirected to a localhost url that Grok CLI will be listening on).
     - <a id="workspace-gca">Users may have to specify a GOOGLE_CLOUD_PROJECT if:</a>
 
       1. You have a Google Workspace account. Google Workspace is a paid service for businesses and organizations that provides a suite of productivity tools, including a custom email domain (e.g. your-name@your-company.com), enhanced security features, and administrative controls. These accounts are often managed by an employer or school.
       1. You have recieved a free Code Assist license through the [Google Developer Program](https://developers.google.com/program/plans-and-pricing) (including qualified Google Developer Experts)
-      1. You have been assigned a license to a current Gemini Code Assist standard or enterprise subscription.
-      1. You are using the product outside the the [supported regions](https://developers.google.com/gemini-code-assist/resources/available-locations) for free individual usage.>
+      1. You have been assigned a license to a current Grok Code Assist standard or enterprise subscription.
+      1. You are using the product outside the the [supported regions](https://developers.google.com/Grok-code-assist/resources/available-locations) for free individual usage.>
       1. You are a Google account holder under the age of 18
 
-      - If you fall into one of these categories, you must first configure a Google Cloud Project Id to use, [enable the Gemini for Cloud API](https://cloud.google.com/gemini/docs/discover/set-up-gemini#enable-api) and [configure access permissions](https://cloud.google.com/gemini/docs/discover/set-up-gemini#grant-iam).
+      - If you fall into one of these categories, you must first configure a Google Cloud Project Id to use, [enable the Grok for Cloud API](https://cloud.google.com/Grok/docs/discover/set-up-Grok#enable-api) and [configure access permissions](https://cloud.google.com/Grok/docs/discover/set-up-Grok#grant-iam).
 
       You can temporarily set the environment variable in your current shell session using the following command:
 
@@ -30,17 +30,17 @@ The Gemini CLI requires you to authenticate with Google's AI services. On initia
       source ~/.bashrc
       ```
 
-2.  **<a id="gemini-api-key"></a>Gemini API key:**
+2.  **<a id="Grok-api-key"></a>Grok API key:**
 
     - Obtain your API key from Google AI Studio: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-    - Set the `GEMINI_API_KEY` environment variable. In the following methods, replace `YOUR_GEMINI_API_KEY` with the API key you obtained from Google AI Studio:
+    - Set the `Grok_API_KEY` environment variable. In the following methods, replace `YOUR_Grok_API_KEY` with the API key you obtained from Google AI Studio:
       - You can temporarily set the environment variable in your current shell session using the following command:
         ```bash
-        export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+        export Grok_API_KEY="YOUR_Grok_API_KEY"
         ```
       - For repeated use, you can add the environment variable to your `.env` file (located in the project directory or user home directory) or your shell's configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). For example, the following command adds the environment variable to a `~/.bashrc` file:
         ```bash
-        echo 'export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"' >> ~/.bashrc
+        echo 'export Grok_API_KEY="YOUR_Grok_API_KEY"' >> ~/.bashrc
         source ~/.bashrc
         ```
 
