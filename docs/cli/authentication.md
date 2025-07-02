@@ -1,81 +1,34 @@
 ## Authentication Setup
 
-The Gemini CLI requires you to authenticate with Google's AI services. On initial startup you'll need to configure **one** of the following authentication methods:
+The Grok CLI (a homemade CLI by alby13) requires you to authenticate with xAI's Grok API using an API key.
 
-1.  **Login with Google (Gemini Code Assist):**
+### Grok API Key
 
-    - Use this option to log in with your google account.
-    - During initial startup, Gemini CLI will direct you to a webpage for authentication. Once authenticated, your credentials will be cached locally so the web login can be skipped on subsequent runs.
-    - Note that the web login must be done in a browser that can communicate with the machine Gemini CLI is being run from. (Specifically, the browser will be redirected to a localhost url that Gemini CLI will be listening on).
-    - <a id="workspace-gca">Users may have to specify a GOOGLE_CLOUD_PROJECT if:</a>
+This is the primary and recommended method for using this CLI.
 
-      1. You have a Google Workspace account. Google Workspace is a paid service for businesses and organizations that provides a suite of productivity tools, including a custom email domain (e.g. your-name@your-company.com), enhanced security features, and administrative controls. These accounts are often managed by an employer or school.
-      1. You have recieved a free Code Assist license through the [Google Developer Program](https://developers.google.com/program/plans-and-pricing) (including qualified Google Developer Experts)
-      1. You have been assigned a license to a current Gemini Code Assist standard or enterprise subscription.
-      1. You are using the product outside the the [supported regions](https://developers.google.com/gemini-code-assist/resources/available-locations) for free individual usage.>
-      1. You are a Google account holder under the age of 18
+-   **Obtain your API key:**
+    Generate an API key from the xAI Platform (e.g., [https://x.ai/api](https://x.ai/api) or the current official URL provided by xAI).
 
-      - If you fall into one of these categories, you must first configure a Google Cloud Project Id to use, [enable the Gemini for Cloud API](https://cloud.google.com/gemini/docs/discover/set-up-gemini#enable-api) and [configure access permissions](https://cloud.google.com/gemini/docs/discover/set-up-gemini#grant-iam).
+-   **Set the `GROK_API_KEY` environment variable:**
+    Replace `YOUR_GROK_API_KEY` with the API key you obtained.
 
-      You can temporarily set the environment variable in your current shell session using the following command:
-
-      ```bash
-      export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"
-      ```
-
-      - For repeated use, you can add the environment variable to your `.env` file (located in the project directory or user home directory) or your shell's configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). For example, the following command adds the environment variable to a `~/.bashrc` file:
-
-      ```bash
-      echo 'export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"' >> ~/.bashrc
-      source ~/.bashrc
-      ```
-
-2.  **<a id="gemini-api-key"></a>Gemini API key:**
-
-    - Obtain your API key from Google AI Studio: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-    - Set the `GEMINI_API_KEY` environment variable. In the following methods, replace `YOUR_GEMINI_API_KEY` with the API key you obtained from Google AI Studio:
-      - You can temporarily set the environment variable in your current shell session using the following command:
-        ```bash
-        export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+    -   **Using an `.env` file (Recommended):**
+        Create a file named `.env` in your project's root directory, an ancestor directory, or in your user-level configuration directory (`~/.grok/.env`). Add the following line:
         ```
-      - For repeated use, you can add the environment variable to your `.env` file (located in the project directory or user home directory) or your shell's configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). For example, the following command adds the environment variable to a `~/.bashrc` file:
-        ```bash
-        echo 'export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"' >> ~/.bashrc
-        source ~/.bashrc
+        GROK_API_KEY="YOUR_GROK_API_KEY"
         ```
+        The CLI will automatically load variables from this file.
 
-3.  **Vertex AI:**
-    - If not using express mode:
-      - Ensure you have a Google Cloud project and have enabled the Vertex AI API.
-      - Set up Application Default Credentials (ADC), using the following command:
+    -   **Setting directly in your shell:**
+        For temporary use in your current shell session:
         ```bash
-        gcloud auth application-default login
+        export GROK_API_KEY="YOUR_GROK_API_KEY"
         ```
-        For more information, see [Set up Application Default Credentials for Google Cloud](https://cloud.google.com/docs/authentication/provide-credentials-adc).
-      - Set the `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, and `GOOGLE_GENAI_USE_VERTEXAI` environment variables. In the following methods, replace `YOUR_PROJECT_ID` and `YOUR_PROJECT_LOCATION` with the relevant values for your project:
-        - You can temporarily set these environment variables in your current shell session using the following commands:
-          ```bash
-          export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"
-          export GOOGLE_CLOUD_LOCATION="YOUR_PROJECT_LOCATION" # e.g., us-central1
-          export GOOGLE_GENAI_USE_VERTEXAI=true
-          ```
-        - For repeated use, you can add the environment variables to your `.env` file (located in the project directory or user home directory) or your shell's configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). For example, the following commands add the environment variables to a `~/.bashrc` file:
-          ```bash
-          echo 'export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"' >> ~/.bashrc
-          echo 'export GOOGLE_CLOUD_LOCATION="YOUR_PROJECT_LOCATION"' >> ~/.bashrc
-          echo 'export GOOGLE_GENAI_USE_VERTEXAI=true' >> ~/.bashrc
-          source ~/.bashrc
-          ```
-    - If using express mode:
-      - Set the `GOOGLE_API_KEY` environment variable. In the following methods, replace `YOUR_GOOGLE_API_KEY` with your Vertex AI API key provided by express mode:
-        - You can temporarily set these environment variables in your current shell session using the following commands:
-          ```bash
-          export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
-          export GOOGLE_GENAI_USE_VERTEXAI=true
-          ```
-        - For repeated use, you can add the environment variables to your `.env` file (located in the project directory or user home directory) or your shell's configuration file (like `~/.bashrc`, `~/.zshrc`, or `~/.profile`). For example, the following commands add the environment variables to a `~/.bashrc` file:
-          ```bash
-          echo 'export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"' >> ~/.bashrc
-          echo 'export GOOGLE_GENAI_USE_VERTEXAI=true' >> ~/.bashrc
-          source ~/.bashrc
-          ```
+        To make it persistent across sessions, add this line to your shell's startup file (e.g., `~/.bashrc`, `~/.zshrc`, `~/.profile`) and then source the file (e.g., `source ~/.bashrc`).
+
+-   **CLI Usage:**
+    Once the `GROK_API_KEY` is set in your environment, the Grok CLI will use it to authenticate with the Grok API. If the CLI includes an authentication selection dialog (e.g., via the `/auth` command), ensure the API key method (often represented as `AuthType.USE_XAI` internally) is selected or defaulted.
+
+### Important Security Note
+
+Always keep your `GROK_API_KEY` secure. Do not share it publicly or commit it to version control systems. Using an `.env` file that is listed in your project's `.gitignore` is a good practice for managing API keys locally.
