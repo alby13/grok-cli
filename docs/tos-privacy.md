@@ -1,37 +1,56 @@
-# Grok CLI: Terms of Service and Privacy Notice
+# Grok CLI (Community Version by alby13): Terms of Service and Privacy Notice
 
-Grok CLI is an open-source tool that allows you to interact with xAI's powerful language models directly from your command-line interface. The terms of service and privacy notices that apply to your usage of Grok CLI depend on the type of account you use to authenticate with xAI.
+This Grok CLI is an open-source, community-driven tool developed by alby13. It allows you to interact with xAI's Grok API directly from your command-line interface using your own Grok API key.
 
-This article outlines the specific terms and privacy policies applicable for different auth methods.
+**Important Disclaimers:**
 
-## 1. Login with xAI Account
+*   This is **not an official xAI product**. It is a third-party tool.
+*   Your use of the Grok API through this CLI is subject to **xAI's Grok API Terms of Service** and **xAI's Privacy Policy**. You are responsible for understanding and complying with those terms.
+    *   Grok API Terms of Service: [https://x.ai/api-terms](https://x.ai/api-terms) (or current URL provided by xAI)
+    *   xAI Privacy Policy: [https://x.ai/privacy](https://x.ai/privacy) (or current URL provided by xAI)
+*   The developer of this CLI (alby13) does not collect, store, or transmit your API keys, prompts, or Grok API responses. All API communication occurs directly between this CLI running on your machine and the Grok API endpoints.
 
-For users who authenticate using their xAI account:
+## Software License
 
-- Terms of Service: Your use of Grok CLI is governed by the general [xAI Terms of Service](https://x.ai/terms).
-- Privacy Notice: The collection and use of your data are described in the [xAI Privacy Policy](https://x.ai/privacy).
+This Grok CLI software is typically provided under an open-source license (e.g., Apache 2.0, MIT). Please refer to the `LICENSE` file in the repository root for specific license details for this CLI tool itself.
 
-## 2. Grok API Key
+## Data Handled by this CLI (Locally on Your Machine)
 
-If you are using a Grok API key for authentication, the following terms apply:
+This CLI tool may store the following information locally on your machine:
 
-- Terms of Service: Your use is subject to the [Grok API Terms of Service](https://x.ai/api-terms).
-- Privacy Notice: Information regarding data handling and privacy is detailed in the general [xAI Privacy Policy](https://x.ai/privacy).
+*   **Configuration Data:** Settings you configure for the CLI (e.g., in `~/.grok/settings.json` or a project-specific `.grok/settings.json`), such as theme preferences, default model choices, tool configurations.
+*   **Hierarchical Context (`GROK.md` files):** If you create `GROK.md` files, their content is read by the CLI and sent to the Grok API as part of your prompts to provide context.
+*   **Shell History:** If you use the integrated shell mode (`!`), a history of commands may be stored locally in a project-specific directory (e.g., `~/.grok/tmp/<project_hash>/shell_history`).
+*   **Checkpoints:** If checkpointing is enabled, file states and conversation history may be stored locally.
+*   **API Key:** Your `GROK_API_KEY` is accessed from your environment variables by the CLI to make API calls. The CLI does not store it elsewhere by default. You are responsible for the secure management of your environment variables.
 
-### Usage Statistics Opt-Out
+## Telemetry / Usage Statistics (for this CLI tool)
 
-You may opt-out from sending Usage Statistics to xAI by following the instructions available here: [Usage Statistics Configuration](./cli/configuration.md#usage-statistics).
+This community version of Grok CLI may include an optional telemetry feature using OpenTelemetry.
 
-## Frequently Asked Questions (FAQ) for Grok CLI
+*   **Default State:** Telemetry is **disabled by default**.
+*   **What might be collected (if you enable it):** If enabled, it may collect anonymized or pseudonymized usage statistics about the CLI's performance and feature usage to help the developer (alby13) improve the tool. This typically includes:
+    *   Tool names called, success/failure status, execution duration.
+    *   CLI session information (e.g., CLI version, OS type).
+    *   Error reports (stack traces, error messages) if the Software encounters an issue.
+*   **What is NOT collected by this CLI's telemetry by default:**
+    *   Your `GROK_API_KEY`.
+    *   The content of your prompts sent to the Grok API.
+    *   The content of responses received from the Grok API.
+    *   Content of your local files (unless explicitly part of an error report you choose to share).
+*   **Opt-in/Opt-out:** You can control this feature via the `telemetry.enabled` setting in the CLI's configuration files.
+*   **Endpoint:** If enabled, this data is intended to be sent to a local OpenTelemetry collector by default (`http://localhost:4317`) or a user-configured OTLP endpoint. **The previous Google-specific Clearcut telemetry has been removed.**
 
-### 1. Is my code, including prompts and answers, used to train xAI's models?
+**Note on Grok API Data Usage:** For information on how xAI uses the data you send to the Grok API (prompts, etc.), please refer to xAI's official Grok API Terms of Service and Privacy Policy linked above.
 
-This depends on the terms applicable to your xAI account type and the Grok API. Please refer to the [xAI Privacy Policy](https://x.ai/privacy) and the [Grok API Terms of Service](https://x.ai/api-terms) for specific details on data usage and model training.
+## Frequently Asked Questions (FAQ)
 
-### 2. What are "Usage Statistics" and what does the opt-out control?
+### 1. Is my code, prompts, or API key sent to anyone other than xAI's Grok API?
 
-The "Usage Statistics" setting is the single control for all optional data collection in the Grok CLI. When enabled, this setting allows xAI to collect anonymous telemetry (like commands run and performance metrics) and potentially other data as described in their policies for model improvement.
+No. This CLI tool is designed to send your prompts and API key directly to the Grok API. The developer (alby13) does not have access to this information. If you enable the CLI's local telemetry, it collects anonymized usage data about the CLI tool itself, not your prompt/response content or API key.
 
-Please review the [xAI Privacy Policy](https://x.ai/privacy) for details on what data is collected when this setting is enabled or disabled.
+### 2. How is my `GROK_API_KEY` handled?
 
-You can disable Usage Statistics for any account type by following the instructions in the [Usage Statistics Configuration](./cli/configuration.md#usage-statistics) documentation.
+The CLI reads your `GROK_API_KEY` from your environment variables to authenticate with the Grok API. It is not stored by the CLI persistently outside of your environment configuration.
+
+By using this Grok CLI, you acknowledge that you have read, understood, and agree to these terms and the data practices described. You also acknowledge your responsibility to review and adhere to xAI's terms and policies for the Grok API.

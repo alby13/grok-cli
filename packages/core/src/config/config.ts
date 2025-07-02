@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2025 alby13
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -66,7 +66,7 @@ import {
   DEFAULT_GROK_EMBEDDING_MODEL,
   DEFAULT_GROK_FLASH_MODEL,
 } from './models.js';
-import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
+// import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js'; // Removed
 
 export enum ApprovalMode {
   DEFAULT = 'default',
@@ -243,13 +243,18 @@ export class Config {
       initializeTelemetry(this);
     }
 
-    if (this.getUsageStatisticsEnabled()) {
-      ClearcutLogger.getInstance(this)?.logStartSessionEvent(
-        new StartSessionEvent(this),
-      );
-    } else {
-      console.log('Data collection is disabled.');
+    // if (this.getUsageStatisticsEnabled()) { // ClearcutLogger removed
+    //   ClearcutLogger.getInstance(this)?.logStartSessionEvent(
+    //     new StartSessionEvent(this),
+    //   );
+    // } else {
+    //   console.log('Data collection is disabled.');
+    // }
+    if (!this.getUsageStatisticsEnabled()) {
+      console.log('Data collection (usage statistics) is disabled.');
     }
+    // If OTel telemetry is also disabled, we might want a general "Telemetry is disabled" message.
+    // However, getUsageStatisticsEnabled is the primary flag for user-facing data collection notices.
   }
 
   async refreshAuth(authMethod: AuthType) {

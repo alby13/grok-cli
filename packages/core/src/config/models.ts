@@ -1,10 +1,10 @@
 /**
  * @license
- * Copyright 2025 xAI
+ * Copyright 2025 alby13
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// NOTE: Verify embedding model name against official xAI documentation.
+// NOTE: Verify embedding model name against official xAI documentation if a dedicated one exists.
 export const DEFAULT_GROK_MODEL = 'grok-3-latest';
 export const DEFAULT_GROK_FLASH_MODEL = 'grok-4-latest'; // Assuming grok-4-latest can serve as a more advanced/different tier option. Verify if a true 'flash' equivalent exists.
-export const DEFAULT_GROK_EMBEDDING_MODEL = 'grok-embedding-large'; // Placeholder, verify
+export const DEFAULT_GROK_EMBEDDING_MODEL = 'grok-3-latest'; // Using main model as placeholder, verify

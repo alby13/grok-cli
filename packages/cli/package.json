@@ -2,7 +2,7 @@
   "name": "@xai/grok-cli",
   "version": "0.1.6",
   "description": "Grok CLI",
-  "repository": "xai-org/grok-cli",
+  "repository": "alby13/grok-cli",
   "type": "module",
   "main": "dist/index.js",
   "bin": {

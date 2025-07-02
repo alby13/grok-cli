@@ -1,8 +1,8 @@
 # How to Contribute
 
-We would love to accept your patches and contributions to this project.
+We would love to accept your patches and contributions to this project. Please follow these guidelines to ensure a smooth development process.
 
-## Before you begin
+<!-- ## Before you begin
 
 ### Sign our Contributor License Agreement
 
@@ -21,7 +21,7 @@ sign a new one. (Placeholder URL)
 ### Review our Community Guidelines
 
 This project follows [xAI's Open Source Community
-Guidelines](https://x.ai/opensource/conduct/) (assuming xAI has one, placeholder URL).
+Guidelines](https://x.ai/opensource/conduct/) (assuming xAI has one, placeholder URL). -->
 
 ## Contribution Process
 
@@ -96,8 +96,8 @@ This section guides contributors on how to build, modify, and understand the dev
 To clone the repository:
 
 ```bash
-git clone https://github.com/xai-org/grok-cli.git # Or your fork's URL # Renamed
-cd grok-cli # Renamed
+git clone https://github.com/alby13/grok-cli.git # Or your fork's URL
+cd grok-cli
 ```
 
 To install dependencies defined in `package.json` as well as root dependencies:
@@ -207,7 +207,7 @@ npm run lint
 ### Coding Conventions
 
 - Please adhere to the coding style, patterns, and conventions used throughout the existing codebase.
-- Consult [GROK.md](https://github.com/xai-org/grok-cli/blob/main/GROK.md) (typically found in the project root) for specific instructions related to AI-assisted development, including conventions for React, comments, and Git usage. # Renamed
+- Consult [GROK.md](https://github.com/alby13/grok-cli/blob/main/GROK.md) (typically found in the project root) for specific instructions related to AI-assisted development, including conventions for React, comments, and Git usage.
 - **Imports:** Pay special attention to import paths. The project uses `eslint-rules/no-relative-cross-package-imports.js` to enforce restrictions on relative imports between packages.
 
 ### Project Structure

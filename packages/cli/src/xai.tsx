@@ -1,8 +1,9 @@
 /**
  * @license
+ * Copyright 2025 alby13
  * SPDX-License-Identifier: Apache-2.0
  *
- * This file has been refactored to be the main entry point for the xAI CLI,
+ * This file has been refactored to be the main entry point for the Grok CLI,
  * using the XaiClient for its core logic. It handles both interactive UI mode
  * and non-interactive command execution.
  */

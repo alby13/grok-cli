@@ -1,5 +1,6 @@
 /**
  * @license
+ * Copyright 2025 alby13
  * SPDX-License-Identifier: Apache-2.0
  */
 

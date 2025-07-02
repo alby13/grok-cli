@@ -24,15 +24,22 @@ const WORKSPACE_SETTINGS_PATH = join(
   'settings.json',
 );
 
-let settingsTarget = undefined;
+let settingsTarget = undefined; // This logic might be simplified or removed if only local is supported
 
 function loadSettingsValue(filePath) {
   try {
     if (existsSync(filePath)) {
       const content = readFileSync(filePath, 'utf-8');
-      const jsonContent = content.replace(/\/\/[^\n]*/g, '');
+      const jsonContent = content.replace(/\/\/[^\n]*/g, ''); // Basic comment removal
       const settings = JSON.parse(jsonContent);
-      return settings.telemetry?.target;
+      // For this homemade CLI, we'll assume 'local' is the only valid target from settings for now.
+      // If settings.telemetry.target is 'gcp' or something else, we can warn or ignore.
+      if (settings.telemetry?.target && settings.telemetry.target !== 'local') {
+        console.warn(
+          `⚠️ Warning: Telemetry target '${settings.telemetry.target}' in ${filePath} is not supported for this CLI. Defaulting to local (if enabled).`,
+        );
+      }
+      return settings.telemetry?.target === 'local' ? 'local' : undefined;
     }
   } catch (e) {
     console.warn(
@@ -48,38 +55,34 @@ if (!settingsTarget) {
   settingsTarget = loadSettingsValue(USER_SETTINGS_PATH);
 }
 
-let target = settingsTarget || 'local';
-const allowedTargets = ['local', 'gcp'];
-
+// For this homemade CLI, telemetry will only support 'local' (if enabled at all).
+// The concept of a 'target' from settings or command line is less relevant if GCP is removed.
+let target = 'local';
 const targetArg = process.argv.find((arg) => arg.startsWith('--target='));
+
 if (targetArg) {
   const potentialTarget = targetArg.split('=')[1];
-  if (allowedTargets.includes(potentialTarget)) {
-    target = potentialTarget;
-    console.log(`⚙️  Using command-line target: ${target}`);
-  } else {
-    console.error(
-      `🛑 Error: Invalid target '${potentialTarget}'. Allowed targets are: ${allowedTargets.join(', ')}.`,
+  if (potentialTarget !== 'local') {
+    console.warn(
+      `⚠️ Warning: Command-line target '${potentialTarget}' is not supported. Telemetry will use 'local' if enabled.`,
     );
-    process.exit(1);
   }
-} else if (settingsTarget) {
-  console.log(
-    `⚙️ Using telemetry target from settings.json: ${settingsTarget}`,
-  );
+  // No need to set target from arg if only 'local' is relevant
+} else if (settingsTarget && settingsTarget !== 'local') {
+   // Warning already printed by loadSettingsValue if settings had non-local target
 }
 
-const scriptPath = join(
-  projectRoot,
-  'scripts',
-  target === 'gcp' ? 'telemetry_gcp.js' : 'local_telemetry.js',
-);
+
+// Always point to local_telemetry.js, as gcp script is removed.
+const scriptPath = join(projectRoot, 'scripts', 'local_telemetry.js');
 
 try {
-  console.log(`🚀 Running telemetry script for target: ${target}.`);
+  // The telemetry system itself (sdk.ts) checks if telemetry is enabled in config.
+  // This script just runs the local collector setup.
+  console.log(`🚀 Preparing local telemetry collector (if telemetry is enabled in settings)...`);
   execSync(`node ${scriptPath}`, { stdio: 'inherit', cwd: projectRoot });
 } catch (error) {
-  console.error(`🛑 Failed to run telemetry script for target: ${target}`);
+  console.error(`🛑 Failed to run local telemetry setup script.`);
   console.error(error);
-  process.exit(1);
+  process.exit(1); // Exit if the setup script itself fails.
 }
