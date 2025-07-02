@@ -4,6 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// IMPORTANT GROK CLI CONVERSION NOTE:
+// This ClearcutLogger is configured to send telemetry data to a Google-specific endpoint
+// ('play.googleapis.com/log') and uses Google's Clearcut log format.
+// For a production version of Grok CLI, this telemetry implementation should be:
+// 1. Disabled by default if xAI does not have an equivalent public telemetry system, OR
+// 2. Replaced with xAI's own telemetry SDK/endpoints if available, OR
+// 3. Adapted to use a more generic OpenTelemetry collector if telemetry is desired
+//    and xAI provides a standard OTLP endpoint.
+// Users can disable this telemetry via the 'telemetry.enabled' setting.
+
 import { Buffer } from 'buffer';
 import * as https from 'https';
 import {
@@ -99,7 +109,7 @@ export class ClearcutLogger {
       ];
       const body = JSON.stringify(request);
       const options = {
-        hostname: 'play.googleapis.com',
+        hostname: 'play.googleapis.com', // GROK CLI NOTE: This is a Google-specific endpoint.
         path: '/log',
         method: 'POST',
         headers: { 'Content-Length': Buffer.byteLength(body) },
