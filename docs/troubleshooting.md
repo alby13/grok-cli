@@ -6,20 +6,20 @@ This guide provides solutions to common issues and debugging tips.
 
 - **Error: `Failed to login. Message: Request contains an invalid argument`**
 
-  - Users with Google Workspace accounts, or users with Google Cloud accounts
+  - Users with xAI Workspace accounts, or users with xAI Cloud accounts
     associated with their Gmail accounts may not be able to activate the free
-    tier of the Google Code Assist plan.
-  - For Google Cloud accounts, you can work around this by setting
-    `GOOGLE_CLOUD_PROJECT` to your project ID.
+    tier of the xAI Code Assist plan.
+  - For xAI Cloud accounts, you can work around this by setting
+    `xAI_CLOUD_PROJECT` to your project ID.
   - You can also grab an API key from [AI
-    Studio](http://aistudio.google.com/app/apikey), which also includes a
+    Studio](http://aistudio.xAI.com/app/apikey), which also includes a
     separate free tier.
 
 ## Frequently asked questions (FAQs)
 
 - **Q: How do I update Grok CLI to the latest version?**
 
-  - A: If installed globally via npm, update Grok CLI using the command `npm install -g @google/Grok-cli@latest`. If run from source, pull the latest changes from the repository and rebuild using `npm run build`.
+  - A: If installed globally via npm, update Grok CLI using the command `npm install -g @xAI/Grok-cli@latest`. If run from source, pull the latest changes from the repository and rebuild using `npm run build`.
 
 - **Q: Where are Grok CLI configuration files stored?**
 
@@ -27,7 +27,7 @@ This guide provides solutions to common issues and debugging tips.
 
 - **Q: Why don't I see cached token counts in my stats output?**
 
-  - A: Cached token information is only displayed when cached tokens are being used. This feature is available for API key users (Grok API key or Vertex AI) but not for OAuth users (Google Personal/Enterprise accounts) at this time, as the Code Assist API does not support cached content creation. You can still view your total token usage with the `/stats` command.
+  - A: Cached token information is only displayed when cached tokens are being used. This feature is available for API key users (Grok API key or Vertex AI) but not for OAuth users (xAI Personal/Enterprise accounts) at this time, as the Code Assist API does not support cached content creation. You can still view your total token usage with the `/stats` command.
 
 ## Common error messages and solutions
 
