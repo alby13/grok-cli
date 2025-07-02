@@ -1,5 +1,5 @@
 {
-  "name": "@google/gemini-cli",
+  "name": "@alby13/grok-cli",
   "version": "0.1.6",
   "engines": {
     "node": ">=18.0.0"
@@ -8,9 +8,9 @@
   "workspaces": [
     "packages/*"
   ],
-  "repository": "google-gemini/gemini-cli",
+  "repository": "alby13/grok-cli",
   "config": {
-    "sandboxImageUri": "us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.5"
+    "sandboxImageUri": "us-docker.pkg.dev/grok-code-dev/grok-cli/sandbox:0.1.5"
   },
   "scripts": {
     "generate": "node scripts/generate-git-commit-info.js",
@@ -23,9 +23,9 @@
     "test:ci": "npm run test:ci --workspaces --if-present",
     "test:e2e": "npm run test:integration:sandbox:none -- --verbose --keep-output",
     "test:integration:all": "npm run test:integration:sandbox:none && npm run test:integration:sandbox:docker && npm run test:integration:sandbox:podman",
-    "test:integration:sandbox:none": "GEMINI_SANDBOX=false node integration-tests/run-tests.js",
-    "test:integration:sandbox:docker": "GEMINI_SANDBOX=docker node integration-tests/run-tests.js",
-    "test:integration:sandbox:podman": "GEMINI_SANDBOX=podman node integration-tests/run-tests.js",
+    "test:integration:sandbox:none": "GROK_SANDBOX=false node integration-tests/run-tests.js",
+    "test:integration:sandbox:docker": "GROK_SANDBOX=docker node integration-tests/run-tests.js",
+    "test:integration:sandbox:podman": "GROK_SANDBOX=podman node integration-tests/run-tests.js",
     "start": "node scripts/start.js",
     "debug": "cross-env DEBUG=1 node --inspect-brk scripts/start.js",
     "lint:fix": "eslint . --fix && eslint integration-tests --fix",
@@ -53,7 +53,7 @@
     "prepublishOnly": "node scripts/prepublish.js"
   },
   "bin": {
-    "gemini": "bundle/gemini.js"
+    "grok": "bundle/grok.js"
   },
   "files": [
     "bundle/",
