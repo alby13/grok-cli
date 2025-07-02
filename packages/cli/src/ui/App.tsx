@@ -50,11 +50,11 @@ import process from 'node:process';
 import {
   getErrorMessage,
   type Config,
-  getAllGrokMdFilenames, // Renamed
+  getAllGrokMdFilenames,
   ApprovalMode,
   isEditorAvailable,
   EditorType,
-} from '@google/gemini-cli-core'; // This will be @xai/grok-cli-core
+} from '@alby13/grok-cli-core';
 import { validateAuthMethod } from '../config/auth.js';
 import { useLogger } from './hooks/useLogger.js';
 import { StreamingContext } from './contexts/StreamingContext.js';

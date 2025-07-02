@@ -7,7 +7,7 @@
 import {
   ToolCallConfirmationDetails,
   ToolResultDisplay,
-} from '@google/gemini-cli-core';
+} from '@alby13/grok-cli-core';
 import { CumulativeStats } from './contexts/SessionContext.js';
 
 // Only defining the state enum needed by the UI

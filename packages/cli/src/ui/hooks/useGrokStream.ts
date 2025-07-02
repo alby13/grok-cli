@@ -24,8 +24,8 @@ import {
   ThoughtSummary,
   UnauthorizedError,
   UserPromptEvent,
-} from '@google/gemini-cli-core';
-import { type Part, type PartListUnion } from '@google/genai';
+} from '@alby13/grok-cli-core';
+import { type Part, type PartListUnion } from '@google/genai'; // This is likely xAI's equivalent or needs an xAI specific import
 import {
   StreamingState,
   HistoryItem,

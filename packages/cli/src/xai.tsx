@@ -31,7 +31,7 @@ import {
   logUserPrompt,
   AuthType,
   Config,
-} from '@google/gemini-cli-core'; // This path will resolve to your updated core package
+} from '@alby13/grok-cli-core';
 import { validateAuthMethod } from './config/auth.js';
 import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
 

@@ -7,10 +7,10 @@
 import React from 'react';
 import { Text } from 'ink';
 import { Colors } from '../colors.js';
-import { type MCPServerConfig } from '@google/gemini-cli-core'; // Will become @xai/grok-cli-core
+import { type MCPServerConfig } from '@alby13/grok-cli-core';
 
 interface ContextSummaryDisplayProps {
-  grokMdFileCount: number; // Renamed
+  grokMdFileCount: number;
   contextFileNames: string[];
   mcpServers?: Record<string, MCPServerConfig>;
   showToolDescriptions?: boolean;
